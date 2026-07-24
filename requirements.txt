@@ -1,3 +1,3 @@
-# cv2 / torch / tensorrt 由 JetPack 提供,不要在这里装,会盖掉带 CUDA 的系统版本
+# cv2 / torch / tensorrt from Jetpack
 numpy
 pillow

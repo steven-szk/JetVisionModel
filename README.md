@@ -11,4 +11,6 @@ source .venv/bin/activate
 deactivate
 
 # install packages
+sudo apt update
+sudo apt install python3-opencv
 pip install -r requirements.txt
