@@ -33,7 +33,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             try:
                 while True:
                     with grab_lock:
-                        jpg = capture.cap_jpg()
+                        jpg = capture.cap_jpg(annotate=True)
                     if jpg is None:
                         continue
                     self.wfile.write(b"--frame\r\nContent-Type: image/jpeg\r\n")

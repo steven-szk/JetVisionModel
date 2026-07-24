@@ -39,11 +39,52 @@ def cap_frame():
         print("Failed to capture frame")
     return frame
 
-def cap_jpg():
-    """Grab a frame and return it JPEG-encoded (bytes), ready to send over HTTP."""
+def get_properties(frame):
+    """Extract basic image properties from a BGR frame. Returns a dict."""
+    h, w = frame.shape[:2]
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    return {
+        "res": f"{w}x{h}",
+        "brightness": f"{gray.mean():.0f}",                          # mean 0-255, check exposure
+        "sharpness": f"{cv2.Laplacian(gray, cv2.CV_64F).var():.0f}",  # higher = better focus
+    }
+
+def get_camera_settings():
+    """Read the camera's exposure / gain / white-balance from the driver.
+    NOTE: on a USB/UVC adapter these are in the driver's OWN units (exposure is usually
+    100us steps, not seconds; WB in Kelvin), and some read -1 if the adapter doesn't
+    expose them. `v4l2-ctl -d /dev/video0 --all` is the authoritative source."""
+    g = cap.get
+    return {
+        "exp": g(cv2.CAP_PROP_EXPOSURE),
+        "gain": g(cv2.CAP_PROP_GAIN),
+        "auto_exp": g(cv2.CAP_PROP_AUTO_EXPOSURE),
+        "wb": g(cv2.CAP_PROP_WB_TEMPERATURE),
+        "auto_wb": g(cv2.CAP_PROP_AUTO_WB),
+        "fps": g(cv2.CAP_PROP_FPS),
+    }
+
+def draw_properties(frame):
+    """Overlay image properties + camera settings in the top-right corner (modifies frame)."""
+    font, scale, thick = cv2.FONT_HERSHEY_SIMPLEX, 0.6, 1
+    props = {**get_properties(frame), **get_camera_settings()}
+    y = 26
+    for k, v in props.items():
+        v = f"{v:g}" if isinstance(v, float) else v   # tidy floats: 156.0 -> 156, keep 0.25
+        text = f"{k}: {v}"
+        (tw, th), _ = cv2.getTextSize(text, font, scale, thick)
+        x = frame.shape[1] - tw - 12  # hug the right edge, 12px margin
+        cv2.putText(frame, text, (x, y), font, scale, (0, 0, 0), 3, cv2.LINE_AA)      # black outline
+        cv2.putText(frame, text, (x, y), font, scale, (0, 255, 0), thick, cv2.LINE_AA)  # green text
+        y += th + 12
+
+def cap_jpg(annotate=False):
+    """Grab a frame and return it JPEG-encoded (bytes). If annotate, overlay properties top-right."""
     frame = cap_frame()
     if frame is None:
         return None
+    if annotate:
+        draw_properties(frame)
     _, buf = cv2.imencode(".jpg", frame)  # BGR frame -> JPEG
     return buf.tobytes()
 
