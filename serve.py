@@ -50,7 +50,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         pass  # quiet: don't log every frame
 
 
-# find this machine's LAN IP
+# find LAN IP
 try:
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.connect(("8.8.8.8", 80))  # no packet sent, just picks the outgoing interface
