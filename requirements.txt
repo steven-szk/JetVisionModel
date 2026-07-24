@@ -1,0 +1,2 @@
+# --- CPU / RAM / temperature stats (detect.py) ---
+psutil
