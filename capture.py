@@ -1,5 +1,5 @@
 """Take a photo from the USB camera: python3 capture.py [output.jpg]"""
-import cv2 #type: ignore
+import cv2  # type: ignore
 
 # Camera config
 WIDTH, HEIGHT = 1920, 1080       # capture resolution
@@ -13,7 +13,7 @@ AUTO = True
 cap = cv2.VideoCapture(0)
 
 if not AUTO:
-    cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0.25)  # manual mode
+    cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1)  # manual mode
     cap.set(cv2.CAP_PROP_EXPOSURE, EXPOSURE_US / 1e6)  # seconds
     cap.set(cv2.CAP_PROP_GAIN, GAIN)
     cap.set(cv2.CAP_PROP_AUTO_WB, 0)

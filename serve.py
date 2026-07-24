@@ -2,8 +2,9 @@
 Run: python3 serve.py  (Ctrl+C to stop). No need to run capture.py separately."""
 import http.server
 import socket
-import time
 import threading
+import time
+
 import capture  # opens the camera on import
 
 PORT = 8000
