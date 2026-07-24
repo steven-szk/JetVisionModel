@@ -24,23 +24,34 @@ cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))  # set before reso
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, WIDTH)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, HEIGHT)
 
+#reduce buffer so no lag in server
+cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+
 if not cap.isOpened():
     print("Camera not found, check: v4l2-ctl --list-devices")
 
 for _ in range(3):  # let auto-exposure settle
     cap.read()
     
-def cap_jpg():
+def cap_frame():
     ok, frame = cap.read()
     if not ok:
         print("Failed to capture frame")
     return frame
 
+def cap_jpg():
+    """Grab a frame and return it JPEG-encoded (bytes), ready to send over HTTP."""
+    frame = cap_frame()
+    if frame is None:
+        return None
+    _, buf = cv2.imencode(".jpg", frame)  # BGR frame -> JPEG
+    return buf.tobytes()
+
 def close_camera():
     cap.release()
 
 if __name__ == "__main__":
-    frame = cap_jpg()
+    frame = cap_frame()
     cv2.imwrite("capture.jpg", frame)
     print(f"Saved capture.jpg {frame.shape}")
     close_camera()
