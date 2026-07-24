@@ -6,7 +6,6 @@ WIDTH, HEIGHT = 1920, 1080       # capture resolution
 EXPOSURE_US = 15000              # shutter speed in microsections, None = auto
 '''VERY IMPORTANT, in UK, 50Hz mains, so use multiples of 10ms'''
 GAIN = 5                      # exposure conpensation
-# Fixed white-balance gains (red, blue). With AWB off these lock the colour
 COLOUR_GAINS = (1.156, 1.649)
 AUTO = True
 
