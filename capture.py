@@ -11,7 +11,7 @@ cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 if not cap.isOpened():
     sys.exit("Camera not found, check: v4l2-ctl --list-devices")
 
-for _ in range(10):  # let auto-exposure settle
+for _ in range(3):  # let auto-exposure settle
     cap.read()
 
 ok, frame = cap.read()
