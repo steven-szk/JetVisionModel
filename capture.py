@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Take a photo from the USB camera: python3 capture.py [output.jpg]"""
 import sys
-import cv2
+import cv2 #type: ignore
 
 cap = cv2.VideoCapture(0)
 cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))  # set before resolution
