@@ -17,5 +17,12 @@ sudo apt install -y python3-spidev
 pip install -r requirements.txt
 
 # Enable GPIO
-sudo /opt/nvidia/jetson-io/jetson-io.py   # Configure 40-pin header → enable spi1
+sudo /opt/nvidia/jetson-io/jetson-io.py --show   
+    # Configure 40-pin header → enable spi1
+# if this does not work, check DTB file:
+sudo mkdir -p /boot/dtb
+sudo rm -rf /boot/dtb/*
+sudo ln -snf /boot/tegra234-p3768-0000+p3767-0005-nv.dtb /boot/dtb/kernel_tegra234-p3768-0000+p3767-0005-nv.dtb
+NPATH=/opt/nvidia/jetson-io:$PYTHONPATH TERM=vt100 /opt/nvidia/jetson-io/jetson-io.py
+
 sudo reboot
