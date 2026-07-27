@@ -26,3 +26,6 @@ sudo ln -snf /boot/tegra234-p3768-0000+p3767-0005-nv.dtb /boot/dtb/kernel_tegra2
 NPATH=/opt/nvidia/jetson-io:$PYTHONPATH TERM=vt100 /opt/nvidia/jetson-io/jetson-io.py
 
 sudo reboot
+
+# IP
+at WPA: 172.26.136.239
