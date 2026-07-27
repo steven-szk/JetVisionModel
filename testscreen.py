@@ -29,7 +29,7 @@ from PIL import Image, ImageDraw, ImageFont  # type: ignore
 # ---- Pin configuration (BOARD numbering) ----
 PIN_DC = 22
 PIN_RST = 18
-PIN_BL = None          # backlight; set to None if wired straight to 3.3V
+PIN_BL = 16          # backlight; set to None if wired straight to 3.3V
 
 SPI_BUS = 0          # /dev/spidev0.0
 SPI_DEV = 0
