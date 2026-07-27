@@ -6,7 +6,7 @@ Then measure each pin to GND with a multimeter -- each should read ~3.3V.
 """
 import Jetson.GPIO as GPIO  # type: ignore
 
-PINS = [16, 22, 18]  # BL, DC, RST (BOARD numbering)
+PINS = [29, 31]  # DC (PQ.05), RST (PQ.06) -- real GPIO pins on Orin Nano
 
 GPIO.setmode(GPIO.BOARD)
 GPIO.setwarnings(False)

@@ -9,12 +9,12 @@ Wiring (defaults below use BOARD physical pin numbers on the 40-pin header):
     ----   -------------
     VCC    Pin 1  (3.3V)   or Pin 2 (5V) if the board has its own regulator
     GND    Pin 6  (GND)
-    SCK    Pin 23 (SPI0_SCK)
+    SCK    Pin 23 (SPI0_SCK)   -> header "SPI 0" = spidev0.0
     MOSI   Pin 19 (SPI0_MOSI)
     CS     Pin 24 (SPI0_CS0)   -> handled by spidev (bus 0, device 0)
-    DC     Pin 22 (GPIO)
-    RST    Pin 18 (GPIO)
-    BL     Pin 16 (GPIO, backlight)  or tie to 3.3V for always-on
+    DC     Pin 29 (GPIO, PQ.05)   <-- NOT 22; 22 defaults to SPI3 on Orin Nano
+    RST    Pin 31 (GPIO, PQ.06)   <-- NOT 18; 18 defaults to SPI3 on Orin Nano
+    BL     Pin 17 (3.3V) always-on  (GPIO can't source enough backlight current)
 
 Enable SPI first:  sudo /opt/nvidia/jetson-io/jetson-io.py  -> Configure -> spi1 (bus0)
 Run:               sudo python3 testscreen.py
@@ -27,9 +27,12 @@ import spidev  # type: ignore
 from PIL import Image, ImageDraw, ImageFont  # type: ignore
 
 # ---- Pin configuration (BOARD numbering) ----
-PIN_DC = 22
-PIN_RST = 18
-PIN_BL = 16          # backlight; set to None if wired straight to 3.3V
+# NOTE: On the Orin Nano dev kit, header pins 16/18/22 default to SPI3 (SFIO),
+# NOT GPIO, so they can't be driven as GPIO without a pinmux change.
+# Pins 29/31/32/33 default to plain GPIO -- use those for DC/RST.
+PIN_DC = 29          # PQ.05 (soc_gpio32)
+PIN_RST = 31         # PQ.06 (soc_gpio33)
+PIN_BL = None        # backlight wired straight to 3.3V (GPIO can't source enough current)
 
 SPI_BUS = 0          # /dev/spidev0.0
 SPI_DEV = 0
