@@ -22,7 +22,7 @@ Run:               sudo python3 testscreen.py
 
 import time
 
-import Jetson.GPIO as GPIO  # type: ignore
+import Jetson.GPIO as GPIO  # type: ignore  # noqa: PLR0402
 import spidev  # type: ignore
 from PIL import Image, ImageDraw, ImageFont  # type: ignore
 

@@ -1,6 +1,7 @@
 # cv2 / torch / tensorrt from Jetpack
 numpy
 pillow
-# ST7796 SPI display test (testscreen.py):
-spidev
+
+# spidev from apt install
+
 # Jetson.GPIO ships with JetPack; if missing: sudo pip3 install Jetson.GPIO
