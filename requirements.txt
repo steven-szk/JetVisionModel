@@ -3,5 +3,5 @@ numpy
 pillow
 
 # spidev from apt install
-
+# sudo apt install python3-spidev
 # Jetson.GPIO ships with JetPack; if missing: sudo pip3 install Jetson.GPIO
