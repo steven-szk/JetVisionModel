@@ -13,7 +13,7 @@ serial = spi(
     gpio_DC=29,
     gpio_RST=31,
     gpio=GPIO,
-    speed_hz=10_000_000
+    speed_hz=16_000_000
 )
 
 # 关键：width 和 height 填原生物理尺寸 320x480
