@@ -1,31 +1,29 @@
+import time
+import Jetson.GPIO as GPIO
 from luma.core.interface.serial import spi
 from luma.core.render import canvas
-from luma.lcd.device import ili9341  # 导入 ili9341 驱动类
-import Jetson.GPIO as GPIO
+from luma.lcd.device import ili9341
 from PIL import Image, ImageDraw, ImageFont
-import time
 
-# ---- 引脚配置 (BOARD 物理编号) ----
-# DC = Pin 29, RST = Pin 31
-GPIO.setmode(GPIO.BOARD)
-
+# ---- 引脚配置 ----
+# 注意：不需手动执行 GPIO.setmode()，直接在 spi 初始化中指定使用 Jetson.GPIO
+# gpio_DC=29, gpio_RST=31 (BOARD 物理针脚编号)
 serial = spi(
-    bus=0, 
-    device=0, 
-    cs_high=False,
-    gpio_DC=29, 
+    bus=0,
+    device=0,
+    gpio_DC=29,
     gpio_RST=31,
-    gpio=GPIO,                 # 指定使用 Jetson.GPIO
-    speed_hz=10_000_000        # 10MHz 稳定频率
+    gpio=GPIO,                 # 明确使用 Jetson.GPIO
+    speed_hz=10_000_000        # 10MHz 稳定时钟
 )
 
 # ---- 初始化显示屏设备 ----
-# ST7796 使用 ili9341 驱动类，分辨率设为 480x320，rotate=1 轴旋转
+# ST7796 借用 ili9341 驱动，分辨率设为 480x320，rotate=1 轴旋转
 device = ili9341(
-    serial_interface=serial, 
-    width=480, 
-    height=320, 
-    rotate=1, 
+    serial_interface=serial,
+    width=480,
+    height=320,
+    rotate=1,
     bgr=True
 )
 
