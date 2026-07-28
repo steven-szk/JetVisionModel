@@ -36,7 +36,7 @@ PIN_BL = None        # backlight wired straight to 3.3V (GPIO can't source enoug
 
 SPI_BUS = 0          # /dev/spidev0.0
 SPI_DEV = 0
-SPI_HZ = 16_000_000  # drop to 24_000_000 if you see glitches
+SPI_HZ = 24_000_000  # drop to 24_000_000 if you see glitches
 
 WIDTH = 480          # landscape
 HEIGHT = 320
@@ -106,7 +106,7 @@ class ST7796:
         self._cmd(0xF0); self._data(0x3C)          # lock manufacturer cmds
         self._cmd(0xF0); self._data(0x69)
 
-        self._cmd(0x21)          # inversion on (typical for ST7796 panels)
+        self._cmd(0x20)          # inversion OFF (this panel shows correct colors without it)
         self._cmd(0x29)          # display on
         time.sleep(0.05)
 
