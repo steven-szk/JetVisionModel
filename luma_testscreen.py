@@ -8,7 +8,7 @@ GPIO.setmode(GPIO.BOARD)
 GPIO.setwarnings(False)
 
 serial = spi(
-    bus=0, device=0,
+    bus=1, device=0,
     gpio_DC=29, gpio_RST=31,
     gpio=GPIO,
     speed_hz=4_000_000,      # 先降速排除时序问题
