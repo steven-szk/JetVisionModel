@@ -3,7 +3,7 @@ import Jetson.GPIO as GPIO
 from luma.core.interface.serial import spi
 from luma.core.render import canvas
 from luma.lcd.device import ili9341
-from luma.core.util import noop
+from luma.core.mixin import noop
 
 # 1. 显式设定 Jetson 为 BOARD 编号模式（物理引脚 29, 31）
 GPIO.setmode(GPIO.BOARD)
