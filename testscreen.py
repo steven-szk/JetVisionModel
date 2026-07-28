@@ -106,9 +106,10 @@ class ST7796:
         self._cmd(0xF0); self._data(0x3C)          # lock manufacturer cmds
         self._cmd(0xF0); self._data(0x69)
 
-        self._cmd(0x20)          # inversion OFF (this panel shows correct colors without it)
+        self._cmd(0x21)          # inversion on (typical for ST7796 panels)
         self._cmd(0x29)          # display on
         time.sleep(0.05)
+        
 
     def _set_window(self, x0, y0, x1, y1):
         self._cmd(0x2A); self._data([x0 >> 8, x0 & 0xFF, x1 >> 8, x1 & 0xFF])
