@@ -11,7 +11,7 @@ DC/RST GPIO 稳态测试 —— 一次测一根脚, 高/低电平各保持 5 秒
 import time
 import Jetson.GPIO as GPIO
 
-PINS = {29: "DC", 31: "RST"}
+PINS = {32: "DC", 33: "RST"}
 HOLD = 5   # 每个电平保持秒数
 
 GPIO.setmode(GPIO.BOARD)

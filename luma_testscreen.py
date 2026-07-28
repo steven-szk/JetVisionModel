@@ -6,16 +6,16 @@ from luma.lcd.device import ili9486
 
 GPIO.setmode(GPIO.BOARD)
 time.sleep(0.1)
-GPIO.setup(29, GPIO.OUT, initial=GPIO.LOW)
-GPIO.setup(31, GPIO.OUT, initial=GPIO.LOW)
+GPIO.setup(32, GPIO.OUT, initial=GPIO.LOW)
+GPIO.setup(33, GPIO.OUT, initial=GPIO.LOW)
 time.sleep(5)
 GPIO.setwarnings(False)
 
 serial = spi(
     bus=0,
     device=0,
-    gpio_DC=29,
-    gpio_RST=31,
+    gpio_DC=32,
+    gpio_RST=33,
     gpio=GPIO,
     speed_hz=16_000_000
 )
