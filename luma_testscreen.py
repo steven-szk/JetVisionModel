@@ -5,8 +5,10 @@ from luma.core.render import canvas
 from luma.lcd.device import ili9486
 
 GPIO.setmode(GPIO.BOARD)
+time.sleep(0.1)
 GPIO.setup(29, GPIO.OUT, initial=GPIO.LOW)
 GPIO.setup(31, GPIO.OUT, initial=GPIO.LOW)
+time.sleep(0.1)
 GPIO.setwarnings(False)
 
 serial = spi(
