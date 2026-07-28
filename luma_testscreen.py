@@ -8,7 +8,7 @@ GPIO.setmode(GPIO.BOARD)
 time.sleep(0.1)
 GPIO.setup(29, GPIO.OUT, initial=GPIO.LOW)
 GPIO.setup(31, GPIO.OUT, initial=GPIO.LOW)
-time.sleep(0.1)
+time.sleep(5)
 GPIO.setwarnings(False)
 
 serial = spi(
