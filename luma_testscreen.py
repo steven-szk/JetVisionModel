@@ -2,7 +2,7 @@ import time
 import Jetson.GPIO as GPIO
 from luma.core.interface.serial import spi
 from luma.core.render import canvas
-from luma.lcd.device import ili9488
+from luma.lcd.device import ili9486
 
 GPIO.setmode(GPIO.BOARD)
 GPIO.setwarnings(False)
@@ -14,9 +14,9 @@ serial = spi(
     speed_hz=4_000_000,      # 先降速排除时序问题
 )
 
-device = ili9488(
+device = ili9486(
     serial_interface=serial,
-    width=480, height=320,
+    width=320, height=480,
     rotate=1, bgr=True,
     gpio=GPIO,
     gpio_LIGHT=18,
