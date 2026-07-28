@@ -110,7 +110,6 @@ class ST7796:
         self._cmd(0x29)          # display on
         time.sleep(0.05)
 
-
     def _set_window(self, x0, y0, x1, y1):
         self._cmd(0x2A); self._data([x0 >> 8, x0 & 0xFF, x1 >> 8, x1 & 0xFF])
         self._cmd(0x2B); self._data([y0 >> 8, y0 & 0xFF, y1 >> 8, y1 & 0xFF])
@@ -180,8 +179,8 @@ def main():
             time.sleep(0.4)
 
         lcd.display(build_test_image())
-        print("Render complete. Holding for 1 s...")
-        time.sleep(1)
+        print("Render complete. Holding for 10 s...")
+        time.sleep(10)
     finally:
         lcd.cleanup()
 
