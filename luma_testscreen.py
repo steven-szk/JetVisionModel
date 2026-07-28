@@ -8,7 +8,7 @@ GPIO.setmode(GPIO.BOARD)
 GPIO.setwarnings(False)
 
 serial = spi(
-    bus=0, device=0,
+    bus=1, device=0,
     gpio_DC=29, gpio_RST=31,
     gpio=GPIO,
     speed_hz=16_000_000,
@@ -16,7 +16,7 @@ serial = spi(
 
 device = ili9486(
     serial_interface=serial,
-    width=320, height=480,
+    width=480, height=320,
     rotate=1, bgr=True,
     gpio=GPIO,
     gpio_LIGHT=18,        # 合法引脚，不要再用 noop()
