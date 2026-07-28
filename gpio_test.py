@@ -15,6 +15,8 @@ PINS = {32: "DC", 33: "RST"}
 HOLD = 5   # 每个电平保持秒数
 
 GPIO.setmode(GPIO.BOARD)
+GPIO.setup(32, GPIO.OUT, pull_up_down=GPIO.PUD_DOWN, initial=GPIO.LOW)
+GPIO.setup(33, GPIO.OUT, pull_up_down=GPIO.PUD_DOWN, initial=GPIO.LOW)
 GPIO.setwarnings(False)
 
 try:
