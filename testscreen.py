@@ -36,7 +36,7 @@ PIN_BL = None        # backlight wired straight to 3.3V (GPIO can't source enoug
 
 SPI_BUS = 0          # /dev/spidev0.0
 SPI_DEV = 0
-SPI_HZ = 8_000_000  # drop to 24_000_000 if you see glitches
+SPI_HZ = 12_000_000  # drop to 24_000_000 if you see glitches
 
 WIDTH = 480          # landscape
 HEIGHT = 320
@@ -109,7 +109,7 @@ class ST7796:
         self._cmd(0x21)          # inversion on (typical for ST7796 panels)
         self._cmd(0x29)          # display on
         time.sleep(0.05)
-        
+
 
     def _set_window(self, x0, y0, x1, y1):
         self._cmd(0x2A); self._data([x0 >> 8, x0 & 0xFF, x1 >> 8, x1 & 0xFF])
@@ -180,8 +180,8 @@ def main():
             time.sleep(0.4)
 
         lcd.display(build_test_image())
-        print("Render complete. Holding for 10 s...")
-        time.sleep(10)
+        print("Render complete. Holding for 1 s...")
+        time.sleep(1)
     finally:
         lcd.cleanup()
 
