@@ -16,7 +16,7 @@ serial = spi(
 
 device = ili9488(
     serial_interface=serial,
-    width=320, height=480,
+    width=480, height=320,
     rotate=1, bgr=True,
     gpio=GPIO,
     gpio_LIGHT=18,
