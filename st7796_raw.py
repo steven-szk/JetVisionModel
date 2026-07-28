@@ -2,7 +2,7 @@ import time
 import spidev
 import Jetson.GPIO as GPIO
 
-BUS, DEV = 0, 0          # ← 如果没反应，把这里改成 1, 0 再跑一次
+BUS, DEV = 1, 0          # ← 如果没反应，把这里改成 1, 0 再跑一次
 DC, RST = 29, 31
 
 GPIO.setmode(GPIO.BOARD)
