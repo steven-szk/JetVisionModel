@@ -12,7 +12,7 @@ GPIO.setmode(GPIO.BOARD)
 GPIO.setwarnings(False)
 for p in PINS:
     GPIO.setup(p, GPIO.OUT)
-    GPIO.output(p, GPIO.LOW)
+    GPIO.output(p, GPIO.HIGH)
 
 print(f"Pins {PINS} driven HIGH. Measure each pin to GND now (expect ~3.3V).")
 try:
