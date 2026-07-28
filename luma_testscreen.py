@@ -16,7 +16,7 @@ serial = spi(
 
 device = ili9486(
     serial_interface=serial,
-    width=480, height=320,
+    width=320, height=480,
     rotate=1, bgr=True,
     gpio=GPIO,
     gpio_LIGHT=18,        # 合法引脚，不要再用 noop()
