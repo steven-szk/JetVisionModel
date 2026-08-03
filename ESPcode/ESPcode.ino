@@ -30,7 +30,6 @@ uint8_t log_count = 0;
 
 // Function vars
 char IP[16] = {0}; 
-char local_IP[16] = {0};
 
 // =============================================
 // ST7796 Display Hardware Driver Class
@@ -203,10 +202,7 @@ void setup() {
 void loop() {
   // Update IP field if fresh IP data arrived
   if (ip_updated) {
-    noInterrupts();
-    strncpy(local_IP, IP, sizeof(local_IP));
     ip_updated = false;
-    interrupts();
 
     lcd.startWrite();
     // Overwrite bottom status area reserved for IP string
@@ -214,7 +210,7 @@ void loop() {
     lcd.setTextDatum(top_right);
     lcd.setTextColor(TFT_GREEN, TFT_BLACK);
     lcd.setTextSize(2);
-    lcd.drawString(local_IP, 470, 299);
+    lcd.drawString(IP, 470, 299);
     lcd.setTextDatum(top_left);
     lcd.endWrite();
   }
