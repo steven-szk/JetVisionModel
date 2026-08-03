@@ -43,6 +43,15 @@ if __name__ == "__main__":
     controller = sendESP()
     try:
         controller.init()
+        while True:
+            text = f"hello {counter}"
+            try:
+                controller.send_string(text)
+                print("sent:", text)
+            except OSError as e:
+                print(f"fail to send esp")
+            counter += 1
+            time.sleep(1)
     except Exception as e:
         print(f"Error occurred: {e}")
     finally:
