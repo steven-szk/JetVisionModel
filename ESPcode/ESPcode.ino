@@ -17,8 +17,12 @@ uint32_t rx_count = 0;   // Cumulative received packet counter
 // Local copies of states for rendering
 char current_msg[I2C_BUF_SIZE] = "Waiting for Jetson Nano Response";
 size_t current_len = 0;
-uint32_t  lastRxMs  = 0;                  // timestamp of the most recent message
+volatile uint32_t lastRxMs  = 0;                  // timestamp of the most recent message
 
+// Log History Settings (Max 6 log entries displayed on left panel)
+#define MAX_LOGS 6
+char log_buffer[MAX_LOGS][I2C_BUF_SIZE];
+uint8_t log_count = 0;
 
 // Layout constants (480x320 landscape after rotation)
 #define SCR_W 480
@@ -26,7 +30,7 @@ uint32_t  lastRxMs  = 0;                  // timestamp of the most recent messag
 
 // Function vars
 char IP[16] = {0}; 
-
+char local_IP[16] = {0};
 
 // =============================================
 // ST7796 Display Hardware Driver Class
@@ -34,7 +38,6 @@ char IP[16] = {0};
 class LGFX_C3_ST7796 : public lgfx::LGFX_Device {
   lgfx::Bus_SPI      _bus_instance;
   lgfx::Panel_ST7796 _panel_instance;
-
 
 public:
   LGFX_C3_ST7796(void) {
@@ -120,20 +123,25 @@ void drawStaticGUI() {
   sprintf(addr, "addr 0x%02X", I2C_ADDR);
   lcd.drawString(addr, SCR_W - 120, 7);
 
-  // LATEST panel frame
-  lcd.drawRect(6, 36, SCR_W - 12, 96, TFT_DARKGREY);
+  lcd.drawRect(6, 36, SCR_W - 12, 60, TFT_DARKGREY);
   lcd.setTextColor(TFT_GREENYELLOW, TFT_BLACK);
   lcd.setTextSize(2);
   lcd.drawString("CURRENT ACTION", 14, 42);
 
-  // LOG panel frame
-  lcd.drawRect(6, 138, SCR_W - 12, 150, TFT_DARKGREY);
+  // LOG panel frame (Left side)
+  lcd.drawRect(6, 102, 230, 188, TFT_DARKGREY);
   lcd.setTextColor(TFT_CYAN, TFT_BLACK);
   lcd.setTextSize(2);
-  lcd.drawString("LOG", 14, 144);
+  lcd.drawString("LOG", 14, 108);
+
+  // RESULTS panel frame (Right side)
+  lcd.drawRect(244, 102, 230, 188, TFT_DARKGREY);
+  lcd.setTextColor(TFT_MAGENTA, TFT_BLACK);
+  lcd.setTextSize(2);
+  lcd.drawString("RESULTS", 252, 108);
 
   // Status bar divider
-  lcd.drawFastHLine(0, 290, SCR_W, TFT_DARKGREY);
+  lcd.drawFastHLine(0, 296, SCR_W, TFT_DARKGREY);
   lcd.setTextColor(TFT_WHITE, TFT_BLACK);
   lcd.setTextSize(2);
   lcd.drawString("RX", 28, 299);
@@ -143,9 +151,33 @@ void drawStaticGUI() {
   lcd.drawString("Wait for System to Boot", 200, 299);
 }
 
+// Function to push standard actions into the LOG box
+void addLogEntry(const char* msg) {
+  // Shift array downward to make room for newest entry at index 0
+  for (int i = MAX_LOGS - 1; i > 0; i--) {
+    strncpy(log_buffer[i], log_buffer[i - 1], I2C_BUF_SIZE);
+  }
+  strncpy(log_buffer[0], msg, I2C_BUF_SIZE);
+  if (log_count < MAX_LOGS) log_count++;
+
+  // Redraw log area inside boundary
+  lcd.fillRect(10, 130, 222, 155, TFT_BLACK);
+  lcd.setTextColor(TFT_LIGHTGREY, TFT_BLACK);
+  lcd.setTextSize(1); 
+
+  for (int i = 0; i < log_count; i++) {
+    lcd.drawString(log_buffer[i], 14, 132 + (i * 24));
+  }
+}
+
 void UpdateScreen() {
+  uint32_t current_last_rx;
+  noInterrupts();
+  current_last_rx = lastRxMs;
+  interrupts();
+
   // RX indicator: green if a message arrived reciently
-  bool active = (millis() - lastRxMs) < 1500;
+  bool active = (millis() - current_last_rx) < 1500;
   lcd.fillCircle(14, 305, 6, active ? TFT_GREEN : TFT_ORANGE);
 
   lcd.startWrite();
@@ -171,22 +203,28 @@ void setup() {
 void loop() {
   // Update IP field if fresh IP data arrived
   if (ip_updated) {
+    noInterrupts();
+    strncpy(local_IP, IP, sizeof(local_IP));
     ip_updated = false;
+    interrupts();
+
     lcd.startWrite();
     // Overwrite bottom status area reserved for IP string
-    lcd.fillRect(200, 295, 275, 24, TFT_BLACK);
+    lcd.fillRect(200, 297, 275, 20, TFT_BLACK);
     lcd.setTextDatum(top_right);
     lcd.setTextColor(TFT_GREEN, TFT_BLACK);
     lcd.setTextSize(2);
-    lcd.drawString(IP, 470, 299);
+    lcd.drawString(local_IP, 470, 299);
     lcd.setTextDatum(top_left);
     lcd.endWrite();
   }
 
   // Check if new payload packet arrived
   if (i2c_data_ready) {
+    char temp_buf[I2C_BUF_SIZE];
+
     noInterrupts();
-    strncpy(current_msg, i2c_rx_buf, I2C_BUF_SIZE);
+    strncpy(temp_buf, i2c_rx_buf, I2C_BUF_SIZE);
     current_len = rx_bytes_len;
     i2c_data_ready = false;
     interrupts();
@@ -196,13 +234,21 @@ void loop() {
     Serial.print("I2C Received [");
     Serial.print(rx_count);
     Serial.print("]: ");
-    Serial.println(current_msg);
+    Serial.println(temp_buf);
 
     lcd.startWrite();
-    lcd.fillRect(20, 215, 440, 60, TFT_BLACK);
+    
+    // Push previous input into LOG before overwriting
+    if (strlen(current_msg) > 0) {
+      addLogEntry(current_msg);
+    }
+    
+    strncpy(current_msg, temp_buf, I2C_BUF_SIZE);
+
+    lcd.fillRect(14, 64, SCR_W - 28, 28, TFT_BLACK);
     lcd.setTextColor(TFT_CYAN, TFT_BLACK);
     lcd.setTextSize(2);
-    lcd.drawString(current_msg, 30, 230);
+    lcd.drawString(current_msg, 14, 66);
     lcd.endWrite();
   }
 
