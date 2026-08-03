@@ -43,6 +43,7 @@ if __name__ == "__main__":
     controller = sendESP()
     try:
         controller.init()
+        counter = 0
         while True:
             text = f"hello {counter}"
             try:
