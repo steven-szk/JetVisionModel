@@ -1,29 +1,23 @@
 #!/usr/bin/env python3
 """
-Jetson -> ESP32 I2C 发送 (Jetson 作 I2C 主机)
+Jetson -> ESP32 I2C send info
 
-接线:
-    Jetson 物理 3 脚 (SDA) -> ESP SDA
-    Jetson 物理 5 脚 (SCL) -> ESP SCL
-    Jetson GND (物理 6)    -> ESP GND   (必须共地)
+Pinout:
+    Jetson GPIO 3 (SDA) -> ESP SDA
+    Jetson GPIO 5 (SCL) -> ESP SCL
+    Jetson GND (GPIO 6)    -> ESP GND
 
-Orin Nano 上 物理 3/5 脚 = /dev/i2c-7。
-若 i2cdetect -l 显示的编号不同, 改下面的 I2C_BUS。
-
-用法:
-    .venv/bin/pip install smbus2
-    .venv/bin/python i2c_send.py
 """
 import time
-from smbus2 import SMBus, i2c_msg
+from smbus2 import SMBus, i2c_msg # type: ignore
 
-I2C_BUS = 7          # 物理 3/5 脚对应的总线号 (Orin Nano = 7)
-ESP_ADDR = 0x08      # ESP32 从机地址, 必须和 ESP 端代码一致
+I2C_BUS = 7
+ESP_ADDR = 0x08
 
 
 def send_bytes(bus, addr, data: bytes):
-    """把任意字节原样写给从机 (i2c_rdwr 不需要寄存器地址, 最通用)。"""
-    msg = i2c_msg.write(addr, data)
+    """write message to esp32 with header 'S'"""
+    msg = i2c_msg.write(addr, b'S' + data)
     bus.i2c_rdwr(msg)
 
 
@@ -42,6 +36,15 @@ def main():
             counter += 1
             time.sleep(1)
 
+def init():
+    """test esp by sending IP of the Jetson to it"""
+    import getIP
+    ip = getIP.get_ip()
+    with SMBus(I2C_BUS) as bus:
+        send_bytes(bus, ESP_ADDR, f"IP{ip}".encode()) #send with header IP
+        print(f"sent IP {ip} to 0x{ESP_ADDR:02X} @ i2c-{I2C_BUS}")
+
 
 if __name__ == "__main__":
+    init()
     main()
