@@ -35,6 +35,7 @@ class LGFX_C3_ST7796 : public lgfx::LGFX_Device {
   lgfx::Bus_SPI      _bus_instance;
   lgfx::Panel_ST7796 _panel_instance;
 
+
 public:
   LGFX_C3_ST7796(void) {
     {
@@ -123,7 +124,7 @@ void drawStaticGUI() {
   lcd.drawRect(6, 36, SCR_W - 12, 96, TFT_DARKGREY);
   lcd.setTextColor(TFT_GREENYELLOW, TFT_BLACK);
   lcd.setTextSize(2);
-  lcd.drawString("LATEST", 14, 42);
+  lcd.drawString("CURRENT ACTION", 14, 42);
 
   // LOG panel frame
   lcd.drawRect(6, 138, SCR_W - 12, 150, TFT_DARKGREY);
