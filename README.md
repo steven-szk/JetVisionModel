@@ -1,5 +1,7 @@
 ## JetVisionModel
 Run U-net for jetson orin nano super for image ML
+CAMERA CAPCTURE -> Jetson -> ESP for disp
+                          -> Server for debug
 
 # New venv with system packages
 python3 -m venv --system-site-packages .venv
