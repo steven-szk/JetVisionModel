@@ -1,0 +1,93 @@
+"""
+ONNX inference for the electrode-defect models on Jetson Orin.
+
+Process:
+    preprocess(image) -> grayscale, resize 512, normalize -> (1,1,512,512) float32
+    infer(image)      -> runs all 5 models, returns a list of detected regions
+
+The .onnx graphs already have sigmoid baked in, so each output is a [0,1] prob map.
+Deps: numpy, opencv-python, onnxruntime-gpu (JetPack wheel).
+
+    from infermodel import infer
+    regions = infer(my_image)      # my_image: numpy array or path
+"""
+import os
+
+import cv2
+import numpy as np
+import onnxruntime as ort # type: ignore
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+FEATURES = ["edge", "coating", "delam", "scratch", "crack"]
+
+# albumentations A.Normalize(mean=0.485, std=0.229) over 0-255 pixels
+MEAN = 0.485 * 255.0
+STD = 0.229 * 255.0
+
+# per-feature settings (mirror each <feature>/settings.py)
+THRESH = {"edge": 0.9, "coating": 0.8, "delam": 0.9, "scratch": 0.3, "crack": 0.7}
+MIN_AREA = {"edge": 1000, "coating": 1200, "delam": 10, "scratch": 1000, "crack": 800}
+
+PROVIDERS = ["TensorrtExecutionProvider", "CUDAExecutionProvider", "CPUExecutionProvider"]
+
+# Load all 5 ONNX models once, at import time.
+SESSIONS = {
+    f: ort.InferenceSession(os.path.join(HERE, f, "model.onnx"), providers=PROVIDERS)
+    for f in FEATURES
+}
+
+
+def preprocess(image, size=512):
+    """Grayscale -> resize size x size -> normalize -> (1,1,size,size) float32.
+
+    `image` is a numpy array (2-D gray or 3-D BGR) or a path to an image file.
+    """
+    if isinstance(image, str):
+        path, image = image, cv2.imread(image, cv2.IMREAD_GRAYSCALE)
+        if image is None:
+            raise FileNotFoundError(f"Cannot read image: {path}")
+    if image.ndim == 3:
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    resized = cv2.resize(image, (size, size), interpolation=cv2.INTER_LINEAR).astype(np.float32)
+    normed = (resized - MEAN) / STD
+    return normed[None, None, :, :].astype(np.float32)
+
+
+def infer(image):
+    """Run all 5 models on `image`; return a list of detected regions.
+
+    `image` is a numpy array (2-D gray or 3-D BGR) or a path to an image file.
+    Each region: {feature, area, bbox [x,y,w,h], centroid [x,y], confidence,
+    contour [[x,y], ...]}, with coordinates in the input image's pixel space.
+    """
+    if isinstance(image, str):
+        path, image = image, cv2.imread(image, cv2.IMREAD_GRAYSCALE)
+        if image is None:
+            raise FileNotFoundError(f"Cannot read image: {path}")
+    h, w = image.shape[:2]
+    tensor = preprocess(image)
+
+    regions = []
+    for feat, sess in SESSIONS.items():
+        name = sess.get_inputs()[0].name
+        prob = np.squeeze(sess.run(None, {name: tensor})[0])  # sigmoid already baked in
+        prob = cv2.resize(prob, (w, h), interpolation=cv2.INTER_LINEAR)
+        binary = (prob > THRESH[feat]).astype(np.uint8)
+        cnts, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        for c in cnts:
+            area = cv2.contourArea(c)
+            if area < MIN_AREA[feat]:
+                continue
+            m = cv2.moments(c)
+            cx = int(m["m10"] / m["m00"]) if m["m00"] else 0
+            cy = int(m["m01"] / m["m00"]) if m["m00"] else 0
+            x, y, bw, bh = cv2.boundingRect(c)
+            regions.append({
+                "feature": feat,
+                "area": float(area),
+                "bbox": [x, y, bw, bh],
+                "centroid": [cx, cy],
+                "confidence": float(prob[cy, cx]),
+                "contour": c.reshape(-1, 2).tolist(),
+            })
+    return regions

@@ -20,7 +20,8 @@ size_t current_len = 0;
 volatile uint32_t lastRxMs  = 0;                  // timestamp of the most recent message
 
 // Log History Settings (Max 6 log entries displayed on left panel)
-#define MAX_LOGS 6
+#define MAX_LOGS 8
+#define LOG_MAX_CHAR 25
 char log_buffer[MAX_LOGS][I2C_BUF_SIZE];
 uint8_t log_count = 0;
 
@@ -30,7 +31,7 @@ uint8_t log_count = 0;
 
 // Function vars
 char IP[16] = {0}; 
-char local_IP[16] = {0};
+
 
 // =============================================
 // ST7796 Display Hardware Driver Class
@@ -157,16 +158,26 @@ void addLogEntry(const char* msg) {
   for (int i = MAX_LOGS - 1; i > 0; i--) {
     strncpy(log_buffer[i], log_buffer[i - 1], I2C_BUF_SIZE);
   }
-  strncpy(log_buffer[0], msg, I2C_BUF_SIZE);
+
+  //remove logs that are too long
+  if (strlen(msg) > LOG_MAX_CHAR) {
+    strncpy(log_buffer[0], msg, LOG_MAX_CHAR - 3);
+    log_buffer[0][LOG_MAX_CHAR - 2] = '\0';
+    strcat(log_buffer[0], ".."); // .. for too long
+  } else {
+    strncpy(log_buffer[0], msg, I2C_BUF_SIZE);
+  }
+
+
   if (log_count < MAX_LOGS) log_count++;
 
   // Redraw log area inside boundary
   lcd.fillRect(10, 130, 222, 155, TFT_BLACK);
   lcd.setTextColor(TFT_LIGHTGREY, TFT_BLACK);
-  lcd.setTextSize(1); 
+  lcd.setTextSize(1.6); 
 
   for (int i = 0; i < log_count; i++) {
-    lcd.drawString(log_buffer[i], 14, 132 + (i * 24));
+    lcd.drawString(log_buffer[i], 14, 132 + (i * 20));
   }
 }
 
@@ -190,6 +201,7 @@ void UpdateScreen() {
 
 void setup() {
   Serial.begin(115200);
+  delay(1000); //wait for 1000 ms
   
   Wire.begin((uint8_t)I2C_ADDR, SDA_PIN, SCL_PIN, 100000);
   Wire.onReceive(onReceive);
@@ -203,10 +215,7 @@ void setup() {
 void loop() {
   // Update IP field if fresh IP data arrived
   if (ip_updated) {
-    noInterrupts();
-    strncpy(local_IP, IP, sizeof(local_IP));
     ip_updated = false;
-    interrupts();
 
     lcd.startWrite();
     // Overwrite bottom status area reserved for IP string
@@ -214,7 +223,7 @@ void loop() {
     lcd.setTextDatum(top_right);
     lcd.setTextColor(TFT_GREEN, TFT_BLACK);
     lcd.setTextSize(2);
-    lcd.drawString(local_IP, 470, 299);
+    lcd.drawString(IP, 470, 299);
     lcd.setTextDatum(top_left);
     lcd.endWrite();
   }
