@@ -31,7 +31,10 @@ uint8_t log_count = 0;
 
 // Function vars
 char IP[16] = {0}; 
+<<<<<<< HEAD
 
+=======
+>>>>>>> c7002dea75eaa7e6d47e1d8a5d412bace8fe0cc3
 
 // =============================================
 // ST7796 Display Hardware Driver Class
