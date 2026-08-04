@@ -4,7 +4,7 @@ pillow
 
 # onnxruntime-gpu for inference/infermodel.py (Jetson, JetPack 6.2 / CUDA 12.6 / Py3.10).
 # Wheel is on the Jetson AI Lab index; --extra-index-url keeps PyPI for the other deps.
---extra-index-url https://pypi.jetson-ai-lab.dev/jp6/cu126
+--extra-index-url https://pypi.jetson-ai-lab.com/jp6/cu126
 onnxruntime-gpu
 
 smbus2
