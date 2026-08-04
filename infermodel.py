@@ -17,7 +17,7 @@ import cv2
 import numpy as np
 import onnxruntime as ort # type: ignore
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+PATH = "inference/"
 FEATURES = ["edge", "coating", "delam", "scratch", "crack"]
 
 # albumentations A.Normalize(mean=0.485, std=0.229) over 0-255 pixels
@@ -32,7 +32,7 @@ PROVIDERS = ["TensorrtExecutionProvider", "CUDAExecutionProvider", "CPUExecution
 
 # Load all 5 ONNX models once, at import time.
 SESSIONS = {
-    f: ort.InferenceSession(os.path.join(HERE, f, "model.onnx"), providers=PROVIDERS)
+    f: ort.InferenceSession(os.path.join(PATH, f, "model.onnx"), providers=PROVIDERS)
     for f in FEATURES
 }
 
@@ -40,30 +40,37 @@ SESSIONS = {
 def preprocess(image, size=512):
     """Grayscale -> resize size x size -> normalize -> (1,1,size,size) float32.
 
-    `image` is a numpy array (2-D gray or 3-D BGR) or a path to an image file.
+    'image' is a numpy array (2-D gray or 3-D BGR) or path.
+    
+    1. If 'image' is a string, treat it as a path and read the image.
+    2. If 'image' is 3-D, convert to grayscale.
+    3. Resize to (size, size) using linear interpolation.
+    4. Normalize using MEAN and STD.
+    5. Return a (1,1,size,size) float32 array.
+    
     """
     if isinstance(image, str):
         path, image = image, cv2.imread(image, cv2.IMREAD_GRAYSCALE)
         if image is None:
             raise FileNotFoundError(f"Cannot read image: {path}")
-    if image.ndim == 3:
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    
+    if image.ndim == 3: #ndim is the number of dimensions of the array, if 3d bgr
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) #convert to grayscale
+        
     resized = cv2.resize(image, (size, size), interpolation=cv2.INTER_LINEAR).astype(np.float32)
-    normed = (resized - MEAN) / STD
+    
+    normed = (resized - MEAN) / STD #maps the 0-255 range to −2.1 … +2.2, centered on 0
+    
     return normed[None, None, :, :].astype(np.float32)
 
 
 def infer(image):
-    """Run all 5 models on `image`; return a list of detected regions.
+    """Run all 5 models on 'image'; return a list of detected regions.
 
-    `image` is a numpy array (2-D gray or 3-D BGR) or a path to an image file.
+    'image' is a numpy array (2-D gray or 3-D BGR) or a path to an image file. It will be preprocessed before inference.
     Each region: {feature, area, bbox [x,y,w,h], centroid [x,y], confidence,
     contour [[x,y], ...]}, with coordinates in the input image's pixel space.
     """
-    if isinstance(image, str):
-        path, image = image, cv2.imread(image, cv2.IMREAD_GRAYSCALE)
-        if image is None:
-            raise FileNotFoundError(f"Cannot read image: {path}")
     h, w = image.shape[:2]
     tensor = preprocess(image)
 
