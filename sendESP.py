@@ -28,22 +28,29 @@ class sendESP:
             return False
 
     def send_result(self, regions) -> bool:
-        """Send a per-defect count summary to the ESP with the 'RES' header.
+        """Send an area summary to the ESP with the 'RES' header.
 
-        'regions' is the list returned by infermodel.infer(). The full contours are
-        far too big for the 128-byte I2C buffer, so we send counts per defect type,
-        e.g. 'crack:2 delam:5 scratch:0 coating:1'. On the wire this is
-        b'S' + b'RES' + summary: 'S' is the header the ESP firmware gates on, and
-        'RES' tags it as a result (route it to the RESULTS panel on the ESP side)."""
-        counts = {}
+        'regions' is the list returned by infermodel.infer(). Sends the electrode
+        (edge) contour area, then each defect type as a percentage of that area, e.g.
+            'EDGEarea:152340 crack:2.34% delam:0.12% scratch:0.00% coating:1.05%'
+        On the wire this is b'S' + b'RES' + summary ('S' is the header the ESP firmware
+        gates on, 'RES' tags it as a result). Area is in pixels of the captured frame;
+        percentages are defect_area / electrode_area. If no edge is found the area is
+        0 and every percentage is 0."""
+        edge_area = sum(r.get("area", 0.0) for r in regions if r.get("feature") == "edge")
+        defect_area = {}
         for r in regions:
             feat = r.get("feature")
             if feat == "edge":          # edge is the electrode boundary, not a defect
                 continue
-            counts[feat] = counts.get(feat, 0) + 1
-        summary = " ".join(f"{feat}:{counts.get(feat, 0)}"
-                           for feat in ("crack", "delam", "scratch", "coating"))
-        return self.send_info(f"RES {summary}")
+            defect_area[feat] = defect_area.get(feat, 0.0) + r.get("area", 0.0)
+
+        def pct(feat):
+            return 100.0 * defect_area.get(feat, 0.0) / edge_area if edge_area else 0.0
+
+        summary = f"EDGEarea:{edge_area:.0f}px2" + " ".join(
+            f"{feat}:{pct(feat):.2f}%" for feat in ("crack", "delam", "scratch", "coating"))
+        return self.send_info(f"RES{summary}")
 
     def init(self, ip_str: str = None) -> bool: #at init, send ip
         if ip_str is None:
