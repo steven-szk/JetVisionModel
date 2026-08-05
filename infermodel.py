@@ -122,12 +122,18 @@ def infer(image):
             cx = int(m["m10"] / m["m00"]) if m["m00"] else 0
             cy = int(m["m01"] / m["m00"]) if m["m00"] else 0
             x, y, bw, bh = cv2.boundingRect(c)
+            # confidence = mean prob over this contour's actual on-pixels, not the centroid
+            # (the centroid can fall off thin/concave shapes and read misleadingly low)
+            cmask = np.zeros((bh, bw), np.uint8)
+            cv2.drawContours(cmask, [c - np.array([x, y], np.int32)], -1, 1, cv2.FILLED)
+            sel = (cmask == 1) & (binary[y:y + bh, x:x + bw] == 1)
+            conf = float(prob[y:y + bh, x:x + bw][sel].mean()) if sel.any() else float(prob[cy, cx])
             regions.append({
                 "feature": feat,
                 "area": float(area),
                 "bbox": [x, y, bw, bh],
                 "centroid": [cx, cy],
-                "confidence": float(prob[cy, cx]),
+                "confidence": conf,
                 "contour": c.reshape(-1, 2).tolist(),
             })
     return regions
