@@ -50,8 +50,8 @@ def main():
                 print(f"{len(regions)} region(s) detected")
                 if espcontrol:
                     espcontrol.send_result(regions)     # -> ESP with 'RES' header
-                    espcontrol.send_info("analysis Complete")
-                    time.sleep(1)
+                    espcontrol.send_info("analysis Complete - Enter to capture")
+                    time.sleep(0.5)
                                         
         except (KeyboardInterrupt, EOFError):
             print("\nExiting")
