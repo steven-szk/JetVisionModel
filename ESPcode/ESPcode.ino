@@ -233,6 +233,11 @@ void loop() {
     lcd.drawString(IP, 470, 299);
     lcd.setTextDatum(top_left);
     lcd.endWrite();
+
+    Serial.print("IP Received [");
+    Serial.print(rx_count);
+    Serial.print("]: ");
+    Serial.println(IP);
   }
 
   // Update RESULTS field if fresh RESULTS data arrived
@@ -258,6 +263,11 @@ void loop() {
       token = strtok(NULL, " ");
     }
     lcd.endWrite();
+
+    Serial.print("RESULTS Received [");
+    Serial.print(rx_count);
+    Serial.print("]: ");
+    Serial.println(RESULTS);
   }
 
   // Check if new payload packet arrived

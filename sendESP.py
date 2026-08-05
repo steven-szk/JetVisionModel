@@ -50,6 +50,7 @@ class sendESP:
 
         summary = f"EDGEarea:{edge_area:.0f}px " + " ".join(
             f"{feat}:{pct(feat):.2f}%" for feat in ("crack", "delam", "scratch", "coating"))
+        print(summary)
         return self.send_info(f"RES{summary}")
 
     def init(self, ip_str: str = None) -> bool: #at init, send ip
