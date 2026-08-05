@@ -108,7 +108,7 @@ def infer(image):
     return regions
 
 if __name__ == "__main__":
-    testPATH = "test_images/test1614.jpg"
+    testPATH = "testdata/test1614.jpg"
 
     image = cv2.imread(testPATH)                   # BGR, used for both inference and drawing
     if image is None:
@@ -127,7 +127,7 @@ if __name__ == "__main__":
                     (x, max(y - 10, 0)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1)
 
     # save the annotated image first, so the result is kept even without a display
-    output_path = "test_images/test1614_results.jpg"
+    output_path = "testdata/test1614_results.jpg"
     cv2.imwrite(output_path, image)
     print(f"saved -> {output_path}")
 
