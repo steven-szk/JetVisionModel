@@ -48,7 +48,7 @@ class sendESP:
         def pct(feat):
             return 100.0 * defect_area.get(feat, 0.0) / edge_area if edge_area else 0.0
 
-        summary = f"EDGEarea:{edge_area:.0f}px2" + " ".join(
+        summary = f"EDGEarea:{edge_area:.0f}px " + " ".join(
             f"{feat}:{pct(feat):.2f}%" for feat in ("crack", "delam", "scratch", "coating"))
         return self.send_info(f"RES{summary}")
 
