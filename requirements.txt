@@ -12,7 +12,9 @@ onnxruntime-gpu
 
 smbus2==0.6.1
 
-evdev
+# evdev (keytrigger.py -- reads the Jetson's own keyboard): install from apt, prebuilt
+# for aarch64. pip fails here (no wheel -> source build -> setuptools/packaging clash):
+#   sudo apt install python3-evdev
 
 # spidev from apt install
 # sudo apt install python3-spidev

@@ -16,6 +16,7 @@ deactivate
 sudo apt update
 sudo apt install python3-opencv
 sudo apt install -y python3-spidev
+sudo apt install python3-evdev
 pip install -r requirements.txt
 
 ## Enable GPIO
