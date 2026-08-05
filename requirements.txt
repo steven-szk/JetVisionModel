@@ -12,6 +12,8 @@ onnxruntime-gpu
 
 smbus2==0.6.1
 
+evdev
+
 # spidev from apt install
 # sudo apt install python3-spidev
 # Jetson.GPIO ships with JetPack; if missing: sudo pip3 install Jetson.GPIO
