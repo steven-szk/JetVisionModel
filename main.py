@@ -7,6 +7,7 @@ Run from the repo root:  python main.py
 import time
 
 import sendESP
+from keytrigger import wait_for_enter
 
 # --- ESP32 link (I2C) ---
 espcontrol = None
@@ -40,7 +41,8 @@ def main():
         espcontrol.send_info("Ready - press Enter to capture")
         try:
             while True:
-                input("\nPress Enter to capture + infer (Ctrl+C to quit)...")
+                #use jetsons keyboard
+                wait_for_enter("Press Enter to capture a frame and run inference (Ctrl+C to quit)...")
                 frame = cap_frame()
                 espcontrol.send_info("Frame Captured - running inference...")
                 if frame is None:
