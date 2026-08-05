@@ -9,7 +9,7 @@ GAIN = 5                      # exposure conpensation
 COLOUR_GAINS = (1.156, 1.649)
 AUTO = True
 
-# Set up camera
+# Set up camera upon import
 cap = cv2.VideoCapture(0)
 
 if not AUTO:
