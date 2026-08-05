@@ -75,19 +75,34 @@ def preprocess(image, size=512):
 def infer(image):
     """Run all 5 models on 'image'; return a list of detected regions.
 
-    'image' is a numpy array (2-D gray or 3-D BGR) or a path to an image file. It will be preprocessed before inference.
+    'image' is a numpy array (2-D gray or 3-D BGR); it is preprocessed before inference.
+    'edge' is run first to get the electrode boundary, and every OTHER feature is
+    clipped to inside the largest edge contour -- so all defects are reported only
+    within the electrode edge. (Relies on FEATURES listing 'edge' first; if no edge
+    is found, no defects are returned.)
     Each region: {feature, area, bbox [x,y,w,h], centroid [x,y], confidence,
     contour [[x,y], ...]}, with coordinates in the input image's pixel space.
     """
     h, w = image.shape[:2]
     tensor = preprocess(image)
 
+    edge_mask = None
     regions = []
     for feat, sess in SESSIONS.items():
         name = sess.get_inputs()[0].name
         prob = np.squeeze(sess.run(None, {name: tensor})[0])  # sigmoid already baked in
         prob = cv2.resize(prob, (w, h), interpolation=cv2.INTER_LINEAR)
         binary = (prob > THRESH[feat]).astype(np.uint8)
+
+        if feat == "edge":
+            # filled mask of the largest edge contour; every other feature is confined to it
+            edge_cnts, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            edge_mask = np.zeros((h, w), np.uint8)
+            if edge_cnts:
+                cv2.drawContours(edge_mask, [max(edge_cnts, key=cv2.contourArea)], -1, 1, cv2.FILLED)
+        else:
+            binary &= edge_mask  # keep only defect pixels inside the electrode edge
+
         cnts, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         for c in cnts:
             area = cv2.contourArea(c)
@@ -117,12 +132,13 @@ if __name__ == "__main__":
     results = infer(image)                         # pass the array, not the path (infer needs .shape)
     print(f"{len(results)} region(s) detected")
 
-    # draw the results on the image
+    # draw the results on the image (the detected polygon, not a bounding box)
     for region in results:
-        x, y, w, h = region["bbox"]
+        pts = np.array(region["contour"], np.int32).reshape(-1, 1, 2)
+        cv2.polylines(image, [pts], True, (0, 255, 0), 2)   # outline the detected shape
         cx, cy = region["centroid"]
-        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
         cv2.circle(image, (cx, cy), 5, (0, 0, 255), -1)
+        x, y = region["bbox"][:2]
         cv2.putText(image, f"{region['feature']} {region['confidence']:.2f}",
                     (x, max(y - 10, 0)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1)
 
