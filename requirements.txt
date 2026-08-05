@@ -2,7 +2,7 @@
 # onnxruntime needs numpy>=1.21.6 (system has 1.21.5), but cap <2 so JetPack's
 # cv2/torch don't break under numpy 2.x's new ABI.
 numpy<2
-pillow
+pillow==9.0.1
 
 # onnxruntime-gpu for inference/infermodel.py (Jetson, JetPack 6.2 / CUDA 12.6 / Py3.10).
 # Jetson AI Lab index -- use .io (not .dev/.com). Left unpinned on purpose: this index
@@ -10,7 +10,7 @@ pillow
 --extra-index-url https://pypi.jetson-ai-lab.io/jp6/cu126
 onnxruntime-gpu
 
-smbus2
+smbus2==0.6.1
 
 # spidev from apt install
 # sudo apt install python3-spidev
