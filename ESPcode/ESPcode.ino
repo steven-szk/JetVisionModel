@@ -103,7 +103,7 @@ void onReceive(int len) {
         strncpy(IP, i2c_rx_buf + 2, sizeof(IP) - 1); //remove chars I P
         IP[sizeof(IP) - 1] = '\0';
         ip_updated = true;
-      }else if (i2c_rx_buf[0] == 'R' && i2c_rx_buf[1] == 'E' && i2c_rx_buf[2] == 'S') { 
+      } else if (i2c_rx_buf[0] == 'R' && i2c_rx_buf[1] == 'E' && i2c_rx_buf[2] == 'S') { 
         strncpy(RESULTS, i2c_rx_buf + 3, sizeof(RESULTS) - 1); //remove chars RES
         RESULTS[sizeof(RESULTS) - 1] = '\0';
         results_updated = true;
@@ -176,7 +176,6 @@ void addLogEntry(const char* msg) {
     strncpy(log_buffer[0], msg, I2C_BUF_SIZE);
   }
 
-
   if (log_count < MAX_LOGS) log_count++;
 
   // Redraw log area inside boundary
@@ -233,6 +232,31 @@ void loop() {
     lcd.setTextSize(2);
     lcd.drawString(IP, 470, 299);
     lcd.setTextDatum(top_left);
+    lcd.endWrite();
+  }
+
+  // Update RESULTS field if fresh RESULTS data arrived
+  if (results_updated) {
+    char temp_res[sizeof(RESULTS)];
+    
+    noInterrupts();
+    strncpy(temp_res, RESULTS, sizeof(temp_res));
+    results_updated = false;
+    interrupts();
+
+    lcd.startWrite();
+    // clear old text
+    lcd.fillRect(248, 130, 222, 155, TFT_BLACK);
+    lcd.setTextColor(TFT_WHITE, TFT_BLACK);
+    lcd.setTextSize(1.6);
+
+    int y_pos = 132;
+    char *token = strtok(temp_res, " ");
+    while (token != NULL && y_pos < 280) {
+      lcd.drawString(token, 252, y_pos);
+      y_pos += 20; // next line
+      token = strtok(NULL, " ");
+    }
     lcd.endWrite();
   }
 
