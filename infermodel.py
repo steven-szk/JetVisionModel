@@ -28,7 +28,15 @@ STD = 0.229 * 255.0
 THRESH = {"edge": 0.9, "coating": 0.8, "delam": 0.9, "scratch": 0.3, "crack": 0.7}
 MIN_AREA = {"edge": 1000, "coating": 1200, "delam": 10, "scratch": 1000, "crack": 800}
 
-PROVIDERS = ["TensorrtExecutionProvider", "CUDAExecutionProvider", "CPUExecutionProvider"]
+# CUDA runs the whole graph natively (cuDNN).
+'''
+TensorRT EP is dropped on purpose:
+it can't build these UNet/ECNet pooling layers (addPoolingNd "windowSize" API error)
+and just spams errors before falling back to CUDA anyway. Re-add it only after a
+TRT-friendly re-export (export_onnx.py --static-batch) if you need the extra speed.
+'''
+
+PROVIDERS = ["CUDAExecutionProvider", "CPUExecutionProvider"] #use GPU if available, otherwise CPU
 
 # Load all 5 ONNX models once, at import time.
 SESSIONS = {
