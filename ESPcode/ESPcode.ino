@@ -11,6 +11,7 @@
 char i2c_rx_buf[I2C_BUF_SIZE];
 volatile bool i2c_data_ready = false;
 volatile bool ip_updated = false;
+volatile bool results_updated = false;
 volatile size_t rx_bytes_len = 0;
 uint32_t rx_count = 0;   // Cumulative received packet counter
 
@@ -21,7 +22,7 @@ volatile uint32_t lastRxMs  = 0;                  // timestamp of the most recen
 
 // Log History Settings (Max 6 log entries displayed on left panel)
 #define MAX_LOGS 8
-#define LOG_MAX_CHAR 25
+#define LOG_MAX_CHAR 24
 char log_buffer[MAX_LOGS][I2C_BUF_SIZE];
 uint8_t log_count = 0;
 
@@ -31,10 +32,8 @@ uint8_t log_count = 0;
 
 // Function vars
 char IP[16] = {0}; 
-<<<<<<< HEAD
+char RESULTS[40] = {0};
 
-=======
->>>>>>> c7002dea75eaa7e6d47e1d8a5d412bace8fe0cc3
 
 // =============================================
 // ST7796 Display Hardware Driver Class
@@ -98,14 +97,20 @@ void onReceive(int len) {
       i2c_rx_buf[i] = '\0'; // Null-terminate
       rx_bytes_len = i;
       
-      // Check if message starts with "IP" (ASCII 73 and ASCII 80)
+      // Check if message starts with "IP"
+      // check if start with "RES"
       if (i2c_rx_buf[0] == 'I' && i2c_rx_buf[1] == 'P') { 
         strncpy(IP, i2c_rx_buf + 2, sizeof(IP) - 1); //remove chars I P
         IP[sizeof(IP) - 1] = '\0';
         ip_updated = true;
+      }else if (i2c_rx_buf[0] == 'R' && i2c_rx_buf[1] == 'E' && i2c_rx_buf[2] == 'S') { 
+        strncpy(RESULTS, i2c_rx_buf + 3, sizeof(RESULTS) - 1); //remove chars RES
+        RESULTS[sizeof(RESULTS) - 1] = '\0';
+        results_updated = true;
       } else {
-        i2c_data_ready = true;
+        i2c_data_ready = true; // this is for updating main log
       }
+
       lastRxMs = millis();
     }
     // Flush remaining buffer
