@@ -18,16 +18,29 @@ sudo apt install python3-opencv
 sudo apt install -y python3-spidev
 pip install -r requirements.txt
 
-# Enable GPIO
+## Enable GPIO
 sudo /opt/nvidia/jetson-io/jetson-io.py --show   
     # Configure 40-pin header → enable spi1
 # if this does not work, check DTB file:
-sudo mkdir -p /boot/dtb
-sudo rm -rf /boot/dtb/*
-sudo ln -snf /boot/tegra234-p3768-0000+p3767-0005-nv.dtb /boot/dtb/kernel_tegra234-p3768-0000+p3767-0005-nv.dtb
-NPATH=/opt/nvidia/jetson-io:$PYTHONPATH TERM=vt100 /opt/nvidia/jetson-io/jetson-io.py
+    sudo mkdir -p /boot/dtb
+    sudo rm -rf /boot/dtb/*
+    sudo ln -snf /boot/tegra234-p3768-0000+p3767-0005-nv.dtb /boot/dtb/kernel_tegra234-p3768-0000+p3767-0005-nv.dtb
+    NPATH=/opt/nvidia/jetson-io:$PYTHONPATH TERM=vt100 /opt/nvidia/jetson-io/jetson-io.py
 
-sudo reboot
+    sudo reboot
+
+# check CUDA, CuDNN, TensorRT version and ONNX ver
+/usr/local/cuda/bin/nvcc --version
+    -> Cuda compilation tools, release 12.6, V12.6.68
+
+https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html#requirements
+    -> 
+
+cat /usr/include/cudnn_version.h | grep CUDNN_MAJOR -A 2
+    -> CuDNN Version: 9.3.0
+
+cat /usr/include/aarch64-linux-gnu/NvInferVersion.h | grep NV_TENSORRT
+    -> TensorRT Version: 10.3.0
 
 # IP
 at WPA: 172.26.136.239
