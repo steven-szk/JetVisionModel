@@ -27,7 +27,7 @@ class sendESP:
             print(f"[I2C Error] Bus {self.bus_id}, Addr 0x{self.address:02X}: {e}")
             return False
 
-    def send_result(self, regions) -> bool:
+    def send_result(self, regions):
         """Send an area summary to the ESP with the 'RES' header.
 
         'regions' is the list returned by infermodel.infer(). Sends the electrode
@@ -54,7 +54,9 @@ class sendESP:
         tot_defect_percent = sum(defect_area.values()) / edge_area * 100 if edge_area else 0
         result_state = False if tot_defect_percent > 10.0 else True
         
-        return self.send_info(f"RES{summary}") and self.send_info(f"STATE{result_state}")
+        self.send_info(f"RES{summary}")
+        time.sleep(0.1)
+        self.send_info(f"STATE{result_state}")
 
     def init(self, ip_str: str = None) -> bool: #at init, send ip
         if ip_str is None:
