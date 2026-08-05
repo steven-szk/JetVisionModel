@@ -33,15 +33,19 @@ sudo /opt/nvidia/jetson-io/jetson-io.py --show
 /usr/local/cuda/bin/nvcc --version
     -> Cuda compilation tools, release 12.6, V12.6.68
 
-https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html#requirements
-https://pypi.jetson-ai-lab.io/jp6
-    -> Jetpack uses aarch64 so download any version compatible with cuda126, NOW it is 1.24.0
-
 cat /usr/include/cudnn_version.h | grep CUDNN_MAJOR -A 2
     -> CuDNN Version: 9.3.0
 
 cat /usr/include/aarch64-linux-gnu/NvInferVersion.h | grep NV_TENSORRT
     -> TensorRT Version: 10.3.0
+
+python3 -c "import onnxruntime as ort; print(ort.__version__, ort.get_available_providers())"
+    -> 1.24.0 ['TensorrtExecutionProvider', 'CUDAExecutionProvider', 'CPUExecutionProvider']
+
+# download ONNX:
+https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html#requirements
+https://pypi.jetson-ai-lab.io/jp6
+    -> Jetpack uses aarch64 so download any version compatible with cuda126, NOW it is 1.24.0
 
 # IP
 at WPA: 172.26.136.239
