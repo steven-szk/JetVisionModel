@@ -12,6 +12,7 @@ char i2c_rx_buf[I2C_BUF_SIZE];
 volatile bool i2c_data_ready = false;
 volatile bool ip_updated = false;
 volatile bool results_updated = false;
+volatile bool state_updated = false;
 volatile size_t rx_bytes_len = 0;
 uint32_t rx_count = 0;   // Cumulative received packet counter
 
@@ -33,6 +34,7 @@ uint8_t log_count = 0;
 // Function vars
 char IP[16] = {0}; 
 char RESULTS[120] = {0};
+char STATE[8] = {0};
 
 
 // =============================================
@@ -107,6 +109,10 @@ void onReceive(int len) {
         strncpy(RESULTS, i2c_rx_buf + 3, sizeof(RESULTS) - 1); //remove chars RES
         RESULTS[sizeof(RESULTS) - 1] = '\0';
         results_updated = true;
+      } else if (strncmp(i2c_rx_buf, "STATE", 5) == 0) {
+        strncpy(STATE, i2c_rx_buf + 5, sizeof(STATE) - 1); //remove chars STATE
+        STATE[sizeof(STATE) - 1] = '\0';
+        state_updated = true;
       } else {
         i2c_data_ready = true; // this is for updating main log
       }
@@ -188,6 +194,34 @@ void addLogEntry(const char* msg) {
   }
 }
 
+// Function to draw the STATE box with color coding
+void drawStateUI(const char* state_str) {
+  lcd.startWrite();
+  int box_x = 248;
+  int box_y = 250;
+  int box_w = 222;
+  int box_h = 36;
+
+  lcd.fillRect(box_x, box_y, box_w, box_h, TFT_BLACK);
+
+  if (strcmp(state_str, "PASS") == 0) {
+    lcd.fillRect(box_x + 10, box_y + 2, box_w - 20, box_h - 4, TFT_GREEN);
+    lcd.setTextColor(TFT_WHITE, TFT_GREEN);
+    lcd.setTextSize(2);
+    lcd.setTextDatum(middle_center);
+    lcd.drawString("PASS", box_x + (box_w / 2), box_y + (box_h / 2));
+    lcd.setTextDatum(top_left);
+  } else if (strcmp(state_str, "FAIL") == 0) {
+    lcd.fillRect(box_x + 10, box_y + 2, box_w - 20, box_h - 4, TFT_RED);
+    lcd.setTextColor(TFT_WHITE, TFT_RED);
+    lcd.setTextSize(2);
+    lcd.setTextDatum(middle_center);
+    lcd.drawString("FAIL", box_x + (box_w / 2), box_y + (box_h / 2));
+    lcd.setTextDatum(top_left);
+  }
+  lcd.endWrite();
+}
+
 void UpdateScreen() {
   uint32_t current_last_rx;
   noInterrupts();
@@ -251,13 +285,13 @@ void loop() {
 
     lcd.startWrite();
     // clear old text
-    lcd.fillRect(248, 130, 222, 155, TFT_BLACK);
+    lcd.fillRect(248, 130, 222, 115, TFT_BLACK);
     lcd.setTextColor(TFT_WHITE, TFT_BLACK);
     lcd.setTextSize(1.6);
 
     int y_pos = 132;
     char *token = strtok(temp_res, " ");
-    while (token != NULL && y_pos < 280) {
+    while (token != NULL && y_pos < 240) {
       lcd.drawString(token, 252, y_pos);
       y_pos += 20; // next line
       token = strtok(NULL, " ");
@@ -268,6 +302,23 @@ void loop() {
     Serial.print(rx_count);
     Serial.print("]: ");
     Serial.println(RESULTS);
+  }
+
+  //update STATE
+  if (state_updated) {
+    char temp_state[sizeof(STATE)];
+
+    noInterrupts();
+    strncpy(temp_state, STATE, sizeof(temp_state));
+    state_updated = false;
+    interrupts();
+
+    drawStateUI(temp_state);
+
+    Serial.print("STATE Received [");
+    Serial.print(rx_count);
+    Serial.print("]: ");
+    Serial.println(temp_state);
   }
 
   // Check if new payload packet arrived
