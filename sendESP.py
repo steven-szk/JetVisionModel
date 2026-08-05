@@ -52,7 +52,7 @@ class sendESP:
             f"{feat}:{pct(feat):.2f}%" for feat in ("crack", "delam", "scratch", "coating"))
         
         tot_defect_percent = sum(defect_area.values()) / edge_area * 100 if edge_area else 0
-        result_state = "PASS" if tot_defect_percent > 10.0 else "FAIL"
+        result_state = "PASS" if tot_defect_percent < 10.0 else "FAIL"
         
         self.send_info(f"RES{summary}")
         time.sleep(0.1)
