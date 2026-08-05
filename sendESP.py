@@ -50,7 +50,11 @@ class sendESP:
 
         summary = f"EDGEarea:{edge_area:.0f}px " + " ".join(
             f"{feat}:{pct(feat):.2f}%" for feat in ("crack", "delam", "scratch", "coating"))
-        return self.send_info(f"RES{summary}")
+        
+        tot_defect_percent = sum(defect_area.values()) / edge_area * 100 if edge_area else 0
+        result_state = False if tot_defect_percent > 10.0 else True
+        
+        return self.send_info(f"RES{summary}") and self.send_info(f"STATE{result_state}")
 
     def init(self, ip_str: str = None) -> bool: #at init, send ip
         if ip_str is None:
