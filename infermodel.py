@@ -76,10 +76,11 @@ def infer(image):
     """Run all 5 models on 'image'; return a list of detected regions.
 
     'image' is a numpy array (2-D gray or 3-D BGR); it is preprocessed before inference.
-    'edge' is run first to get the electrode boundary, and every OTHER feature is
-    clipped to inside the largest edge contour -- so all defects are reported only
-    within the electrode edge. (Relies on FEATURES listing 'edge' first; if no edge
-    is found, no defects are returned.)
+    'edge' is run first to get the electrode boundary: only the single largest edge
+    contour is kept (smaller edge blobs are treated as mis-detections), and every
+    OTHER feature is clipped to inside it -- so all defects are reported only within
+    the electrode edge. (Relies on FEATURES listing 'edge' first; if no edge is
+    found, no defects are returned.)
     Each region: {feature, area, bbox [x,y,w,h], centroid [x,y], confidence,
     contour [[x,y], ...]}, with coordinates in the input image's pixel space.
     """
@@ -95,15 +96,16 @@ def infer(image):
         binary = (prob > THRESH[feat]).astype(np.uint8)
 
         if feat == "edge":
-            # filled mask of the largest edge contour; every other feature is confined to it
-            edge_cnts, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            # keep ONLY the largest edge contour (the electrode boundary); smaller edge
+            # blobs are mis-detections and dropped. Its filled mask confines the others.
+            cnts, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            cnts = [max(cnts, key=cv2.contourArea)] if cnts else []
             edge_mask = np.zeros((h, w), np.uint8)
-            if edge_cnts:
-                cv2.drawContours(edge_mask, [max(edge_cnts, key=cv2.contourArea)], -1, 1, cv2.FILLED)
+            if cnts:
+                cv2.drawContours(edge_mask, cnts, -1, 1, cv2.FILLED)
         else:
             binary &= edge_mask  # keep only defect pixels inside the electrode edge
-
-        cnts, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            cnts, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         for c in cnts:
             area = cv2.contourArea(c)
             if area < MIN_AREA[feat]:
