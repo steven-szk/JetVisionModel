@@ -106,3 +106,26 @@ def infer(image):
                 "contour": c.reshape(-1, 2).tolist(),
             })
     return regions
+
+if __name__ == "__main__":
+    testPATH = "test_images/test1614.jpg"
+    
+    results = infer(testPATH)
+    
+    #plot the results on the image
+    image = cv2.imread(testPATH)
+    for region in results:
+        x, y, w, h = region["bbox"]
+        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        cx, cy = region["centroid"]
+        cv2.circle(image, (cx, cy), 5, (0, 0, 255), -1)
+        cv2.putText(image, f"{region['feature']} {region['confidence']:.2f}", (x, y - 10),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1)
+    cv2.imshow("Detected Regions", image)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+    
+    #store the results in jpg
+    output_path = "test_images/test1614_results.jpg"
+    cv2.imwrite(output_path, image)
+    
