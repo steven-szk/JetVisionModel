@@ -37,7 +37,7 @@ except Exception as e:
 # --- main loop: Enter -> capture -> infer -> send RES to ESP ---
 def main():
     if cap_frame and infer:
-        espcontrol.send_info("Ready - press Enter to capture + infer")
+        espcontrol.send_info("Ready - press Enter to capture")
         try:
             while True:
                 input("\nPress Enter to capture + infer (Ctrl+C to quit)...")
@@ -52,8 +52,7 @@ def main():
                     espcontrol.send_result(regions)     # -> ESP with 'RES' header
                     espcontrol.send_info("analysis Complete")
                     time.sleep(1)
-                    input("\nPress Enter to capture + infer (Ctrl+C to quit)...")
-                    
+                                        
         except (KeyboardInterrupt, EOFError):
             print("\nExiting")
         finally:
