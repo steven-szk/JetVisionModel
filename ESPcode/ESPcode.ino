@@ -32,7 +32,7 @@ uint8_t log_count = 0;
 
 // Function vars
 char IP[16] = {0}; 
-char RESULTS[40] = {0};
+char RESULTS[120] = {0};
 
 
 // =============================================
