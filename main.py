@@ -1,4 +1,4 @@
-import serve
+#import serve
 import sendESP
 
 def main():
@@ -6,8 +6,7 @@ def main():
         espcontrol = sendESP.sendESP()
         espcontrol.init()
         
-        serve.start_server(espcontrol)
-        
+        #serve.start_server(espcontrol)
     except Exception as e:
             print(f"Error init: {e}")    
         
@@ -22,6 +21,8 @@ def main():
         from infermodel import infer
     except Exception as e:
             print(f"Error loading models: {e}")
+    
+    
         
         
         
