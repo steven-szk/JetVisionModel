@@ -109,23 +109,32 @@ def infer(image):
 
 if __name__ == "__main__":
     testPATH = "test_images/test1614.jpg"
-    
-    results = infer(testPATH)
-    
-    #plot the results on the image
-    image = cv2.imread(testPATH)
+
+    image = cv2.imread(testPATH)                   # BGR, used for both inference and drawing
+    if image is None:
+        raise FileNotFoundError(f"Cannot read image: {testPATH}")
+
+    results = infer(image)                         # pass the array, not the path (infer needs .shape)
+    print(f"{len(results)} region(s) detected")
+
+    # draw the results on the image
     for region in results:
         x, y, w, h = region["bbox"]
-        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
         cx, cy = region["centroid"]
+        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
         cv2.circle(image, (cx, cy), 5, (0, 0, 255), -1)
-        cv2.putText(image, f"{region['feature']} {region['confidence']:.2f}", (x, y - 10),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1)
-    cv2.imshow("Detected Regions", image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-    
-    #store the results in jpg
+        cv2.putText(image, f"{region['feature']} {region['confidence']:.2f}",
+                    (x, max(y - 10, 0)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1)
+
+    # save the annotated image first, so the result is kept even without a display
     output_path = "test_images/test1614_results.jpg"
     cv2.imwrite(output_path, image)
-    
+    print(f"saved -> {output_path}")
+
+    # show it too, if a display is available (auto-skipped when headless / over SSH)
+    try:
+        cv2.imshow("Detected Regions", image)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+    except cv2.error:
+        pass
