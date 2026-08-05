@@ -27,6 +27,14 @@ STD = 0.229 * 255.0
 # per-feature settings (mirror each <feature>/settings.py)
 THRESH = {"edge": 0.9, "coating": 0.8, "delam": 0.9, "scratch": 0.3, "crack": 0.7}
 MIN_AREA = {"edge": 1000, "coating": 1200, "delam": 10, "scratch": 1000, "crack": 800}
+# per-feature draw color in BGR (mirrors each settings.py "color")
+COLORS = {
+    "edge":    (111, 71, 239),   # #EF476F
+    "coating": (160, 214, 6),    # #06D6A0
+    "delam":   (178, 138, 17),   # #118AB2
+    "scratch": (102, 209, 255),  # #FFD166
+    "crack":   (53, 107, 255),   # #FF6B35
+}
 
 # CUDA runs the whole graph natively (cuDNN).
 '''
@@ -136,13 +144,14 @@ if __name__ == "__main__":
 
     # draw the results on the image (the detected polygon, not a bounding box)
     for region in results:
+        color = COLORS[region["feature"]]                   # one color per feature
         pts = np.array(region["contour"], np.int32).reshape(-1, 1, 2)
-        cv2.polylines(image, [pts], True, (0, 255, 0), 2)   # outline the detected shape
+        cv2.polylines(image, [pts], True, color, 2)         # outline the detected shape
         cx, cy = region["centroid"]
-        cv2.circle(image, (cx, cy), 5, (0, 0, 255), -1)
+        cv2.circle(image, (cx, cy), 5, color, -1)
         x, y = region["bbox"][:2]
         cv2.putText(image, f"{region['feature']} {region['confidence']:.2f}",
-                    (x, max(y - 10, 0)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1)
+                    (x, max(y - 10, 0)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
 
     # save the annotated image first, so the result is kept even without a display
     output_path = "testdata/test1455_results.jpg"
