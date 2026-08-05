@@ -34,7 +34,8 @@ sudo /opt/nvidia/jetson-io/jetson-io.py --show
     -> Cuda compilation tools, release 12.6, V12.6.68
 
 https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html#requirements
-    -> 
+https://pypi.jetson-ai-lab.io/jp6
+    -> Jetpack uses aarch64 so download any version compatible with cuda126, NOW it is 1.24.0
 
 cat /usr/include/cudnn_version.h | grep CUDNN_MAJOR -A 2
     -> CuDNN Version: 9.3.0
