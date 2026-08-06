@@ -30,9 +30,8 @@ try:
     from capture import cap_frame, close_camera
     espcontrol.send_info("Camera Loaded")
 except Exception as e:
+    espcontrol.send_info("ERROR loading camera") 
     print(f"Error loading camera: {e}")
-    close_camera()
-    espcontrol.send_info("ERROR loading camera")
     exit(1)
 
 # --- models (loads all 5 ONNX sessions on import) ---
@@ -40,8 +39,8 @@ try:
     from infermodel import infer
     espcontrol.send_info("Models Loaded")
 except Exception as e:
-    print(f"Error loading models: {e}")
     espcontrol.send_info("ERROR loading MODELS")
+    print(f"Error loading models: {e}")
     exit(1)
 
 # --- main loop: Enter (or the web Capture button) -> capture -> infer -> send RES ---
