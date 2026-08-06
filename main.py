@@ -33,6 +33,7 @@ except Exception as e:
     print(f"Error loading camera: {e}")
     close_camera()
     espcontrol.send_info("ERROR loading camera")
+    exit(1)
 
 # --- models (loads all 5 ONNX sessions on import) ---
 try:
@@ -41,6 +42,7 @@ try:
 except Exception as e:
     print(f"Error loading models: {e}")
     espcontrol.send_info("ERROR loading MODELS")
+    exit(1)
 
 # --- main loop: Enter (or the web Capture button) -> capture -> infer -> send RES ---
 def main():

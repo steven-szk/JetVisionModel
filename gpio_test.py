@@ -9,7 +9,7 @@ DC/RST GPIO 稳态测试 —— 一次测一根脚, 高/低电平各保持 5 秒
 如需换脚测: 改下面的 PINS 即可, 例如 {15: "DC", 18: "RST"}
 """
 import time
-import Jetson.GPIO as GPIO
+import Jetson.GPIO as GPIO #type: ignore
 
 PINS = {32: "DC", 33: "RST"}
 HOLD = 5   # 每个电平保持秒数
