@@ -22,6 +22,7 @@ try:
     espcontrol.send_info("Control panel initialized...")
 except Exception as e:
     print(f"Error init ESP/Control panel (continuing without it): {e}")
+    espcontrol.send_info("ERROR in ESP/CONTROL PANEL")
 
 
 # --- camera (opens the USB camera on import) ---
@@ -30,7 +31,8 @@ try:
     espcontrol.send_info("Camera Loaded")
 except Exception as e:
     print(f"Error loading camera: {e}")
-    cap_frame = close_camera = None
+    close_camera()
+    espcontrol.send_info("ERROR loading camera")
 
 # --- models (loads all 5 ONNX sessions on import) ---
 try:
@@ -38,20 +40,15 @@ try:
     espcontrol.send_info("Models Loaded")
 except Exception as e:
     print(f"Error loading models: {e}")
-    infer = None
+    espcontrol.send_info("ERROR loading MODELS")
 
 # --- main loop: Enter (or the web Capture button) -> capture -> infer -> send RES ---
 def main():
-    if not (cap_frame and infer):
-        print("Camera or models failed to load -- cannot start (see errors above).")
-        return
-
     # Start the web control panel (port 1234). It drives the same camera/models/ESP,
     # and its Capture button calls the very same capture_and_process() as Enter does.
     controlpanel.start(cap_frame=cap_frame, infer=infer, espcontrol=espcontrol)
 
-    if espcontrol:
-        espcontrol.send_info("Ready - press Enter to capture")
+    espcontrol.send_info("Ready - press Enter to capture")
     try:
         while True:
             # use the Jetson's own keyboard (the web button is the other trigger)
