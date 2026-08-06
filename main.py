@@ -2,10 +2,13 @@
 Press Enter -> capture a frame -> run inference -> send a defect-count summary to
 the ESP32 over I2C (with the 'RES' header). Ctrl+C to quit.
 
+A web control panel is also served on the Jetson's IP at port 1234 (raw + processed
+image, results, debug log, and a Capture button that does the same as Enter). Both
+the Enter key and that button call controlpanel.capture_and_process().
+
 Run from the repo root:  python main.py
 """
-import time
-
+import controlpanel
 import sendESP
 from keytrigger import wait_for_enter
 
@@ -35,35 +38,30 @@ except Exception as e:
     print(f"Error loading models: {e}")
     infer = None
 
-# --- main loop: Enter -> capture -> infer -> send RES to ESP ---
+# --- main loop: Enter (or the web Capture button) -> capture -> infer -> send RES ---
 def main():
-    if cap_frame and infer:
-        espcontrol.send_info("Ready - press Enter to capture")
-        try:
-            while True:
-                #use jetsons keyboard
-                wait_for_enter("Press Enter to capture a frame and run inference (Ctrl+C to quit)...")
-                frame = cap_frame()
-                espcontrol.send_info("Frame Captured - running inference...")
-                if frame is None:
-                    espcontrol.send_info("Capture failed")
-                    continue
-                regions = infer(frame)
-                print(f"{len(regions)} region(s) detected")
-                if espcontrol:
-                    espcontrol.send_result(regions)     # -> ESP with 'RES' header
-                    espcontrol.send_info("analysis Complete - Enter to capture")
-                    time.sleep(0.5)
-                                        
-        except (KeyboardInterrupt, EOFError):
-            print("\nExiting")
-        finally:
-            if close_camera:
-                close_camera()
-            if espcontrol:
-                espcontrol.close()
-    else:
+    if not (cap_frame and infer):
         print("Camera or models failed to load -- cannot start (see errors above).")
+        return
+
+    # Start the web control panel (port 1234). It drives the same camera/models/ESP,
+    # and its Capture button calls the very same capture_and_process() as Enter does.
+    controlpanel.start(cap_frame=cap_frame, infer=infer, espcontrol=espcontrol)
+
+    if espcontrol:
+        espcontrol.send_info("Ready - press Enter to capture")
+    try:
+        while True:
+            # use the Jetson's own keyboard (the web button is the other trigger)
+            wait_for_enter("Press Enter to capture a frame and run inference (Ctrl+C to quit)...")
+            controlpanel.capture_and_process()
+    except (KeyboardInterrupt, EOFError):
+        print("\nExiting")
+    finally:
+        if close_camera:
+            close_camera()
+        if espcontrol:
+            espcontrol.close()
 
 
 if __name__ == "__main__":
