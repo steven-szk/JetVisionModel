@@ -29,6 +29,7 @@ Standalone test:
 """
 import select
 import sys
+import time
 
 try:
     from evdev import InputDevice, ecodes, list_devices  # type: ignore
@@ -66,15 +67,26 @@ _keyboards = None  # cached device list, discovered on first use
 def wait_for_enter(prompt="Press Enter on the Jetson keyboard..."):
     """Block until Enter is pressed on ANY attached keyboard.
 
-    Falls back to the launching terminal's stdin input() if no physical keyboard
-    can be read (evdev not installed, no device, or no permission)."""
+    If no keyboard can be read it falls back to the terminal's stdin -- but ONLY when
+    there is a real interactive terminal. Running headless (e.g. as a systemd service)
+    with no keyboard, it parks instead of exiting, so the web control panel keeps
+    serving; if a keyboard is plugged in later it starts listening automatically."""
     global _keyboards
     if _keyboards is None:
         _keyboards = find_keyboards()
 
-    if not _keyboards:                    # nothing to read -> use the terminal
-        input(prompt + " [stdin fallback] ")
-        return
+    if not _keyboards:
+        # A real terminal? Let the user press Enter there (handy for dev over SSH).
+        if sys.stdin and sys.stdin.isatty():
+            input(prompt + " [stdin fallback] ")
+            return
+        # Headless with no keyboard: do NOT fall through to input() -- stdin is
+        # /dev/null under systemd, so it would hit EOF and the app would exit,
+        # killing the web panel too. Wait here until a keyboard appears instead.
+        print(prompt + "  [no keyboard found - web panel still active, waiting...]")
+        while not _keyboards:
+            time.sleep(2)                 # interruptible by SIGTERM/SIGINT -> clean exit
+            _keyboards = find_keyboards()
 
     print(prompt)
     fd_to_dev = {dev.fd: dev for dev in _keyboards}
