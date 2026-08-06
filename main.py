@@ -9,6 +9,8 @@ the Enter key and that button call controlpanel.capture_and_process().
 Run from the repo root:  python main.py
 """
 
+import signal
+
 import sendESP
 from keytrigger import wait_for_enter
 
@@ -43,8 +45,17 @@ except Exception as e:
     print(f"Error loading models: {e}")
     exit(1)
 
+def _handle_term(signum, frame):
+    """systemctl stop / `kill` send SIGTERM; raise so main()'s finally block runs the
+    same graceful cleanup as Ctrl+C (REBOOT the ESP, release the camera, stop panel)."""
+    raise KeyboardInterrupt
+
+
 # --- main loop: Enter (or the web Capture button) -> capture -> infer -> send RES ---
 def main():
+    # Treat SIGTERM (systemctl stop / kill) like Ctrl+C so shutdown is graceful.
+    signal.signal(signal.SIGTERM, _handle_term)
+
     # Start the web control panel (port 1234). It drives the same camera/models/ESP,
     # and its Capture button calls the very same capture_and_process() as Enter does.
     controlpanel.start(cap_frame=cap_frame, infer=infer, espcontrol=espcontrol)

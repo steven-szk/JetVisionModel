@@ -1,0 +1,30 @@
+[Unit]
+Description=JetVisionModel electrode-defect inference + web control panel (port 1234)
+# Wait for the network so the panel can bind and report the LAN IP.
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=steven
+WorkingDirectory=/home/steven/workspace/JetVisionModel
+# Use the venv's python directly (no activation needed).
+ExecStart=/home/steven/workspace/JetVisionModel/.venv/bin/python /home/steven/workspace/JetVisionModel/main.py
+
+# `systemctl stop` / `kill` send SIGTERM; main.py turns that into a graceful exit.
+KillSignal=SIGTERM
+TimeoutStopSec=20
+
+# The USB camera / I2C bus may not be ready the instant we boot -- retry a few times.
+Restart=on-failure
+RestartSec=10
+
+# systemd already applies steven's groups (input, i2c, video, gpio, ...). If the
+# service can't reach the keyboard / camera / I2C, force them explicitly here:
+# SupplementaryGroups=input i2c video gpio dialout
+
+# Uncomment if onnxruntime can't find the CUDA libs your interactive shell exports:
+# Environment=LD_LIBRARY_PATH=/usr/local/cuda/lib64
+
+[Install]
+WantedBy=multi-user.target
