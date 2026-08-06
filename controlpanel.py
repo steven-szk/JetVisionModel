@@ -20,6 +20,8 @@ Wiring (kept out of main.py):
 """
 import http.server
 import json
+import os
+import signal
 import socket
 import threading
 import time
@@ -44,6 +46,7 @@ COLORS = {
 _cap_frame = None
 _infer = None
 _espcontrol = None
+_server = None      # the running HTTP server, so stop() can shut it down
 
 # --- shared state, read by the web handlers, written by capture_and_process ---
 _state_lock = threading.Lock()    # guards the _state dict below
@@ -223,6 +226,7 @@ _PAGE = """<!doctype html>
   button{font:600 15px system-ui;color:#fff;background:var(--accent);border:0;border-radius:8px;
          padding:12px 18px;cursor:pointer;width:100%}
   button:disabled{opacity:.5;cursor:default}
+  button.danger{background:#b62324;margin-top:10px}
   table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
   td,th{text-align:left;padding:3px 8px 3px 0;border-bottom:1px solid var(--edge);white-space:nowrap}
   th{color:var(--mut);font-weight:500}
@@ -244,6 +248,8 @@ _PAGE = """<!doctype html>
   <div class="card"><h2>Capture</h2><div class="body">
     <button id="btn">Capture &amp; Process</button>
     <div class="hint">Does the same as pressing Enter. You can also press Enter here.</div>
+    <button id="shut" class="danger">Shutdown</button>
+    <div class="hint">Stops the vision app on the Jetson (same as Ctrl+C).</div>
   </div></div>
 
   <div class="card"><h2>Results</h2><div class="body" id="results">
@@ -254,9 +260,17 @@ _PAGE = """<!doctype html>
 
 <script>
 const $ = id => document.getElementById(id);
-let lastSeq = -1;
+let lastSeq = -1, stopped = false;
 
 $("btn").onclick = () => fetch("/capture", {method:"POST"});
+$("shut").onclick = () => {
+  if(!confirm("Shut down the vision app? The control panel will go offline.")) return;
+  fetch("/shutdown", {method:"POST"});
+  stopped = true;
+  $("state").textContent = "OFFLINE"; $("state").className = "";
+  $("btn").disabled = $("shut").disabled = true;
+  $("btn").textContent = "Shutting down…";
+};
 document.addEventListener("keydown", e => {
   if (e.key === "Enter" && document.activeElement.tagName !== "BUTTON") {
     e.preventDefault(); $("btn").click();
@@ -285,6 +299,7 @@ function renderResults(r){
 }
 
 async function poll(){
+  if(stopped) return;
   try{
     const s = await (await fetch("/state")).json();
     const st = $("state"); st.textContent = s.results ? s.results.state : "—";
@@ -318,6 +333,10 @@ class _Handler(http.server.BaseHTTPRequestHandler):
             # run in the background so the button returns instantly; the page polls /state
             threading.Thread(target=capture_and_process, daemon=True).start()
             self._send(200, "application/json", b'{"ok":true}')
+        elif self.path.startswith("/shutdown"):
+            # reply first, then exit shortly after so the browser sees the response
+            self._send(200, "application/json", b'{"ok":true}')
+            threading.Timer(0.3, request_shutdown).start()
         else:
             self.send_error(404)
 
@@ -383,8 +402,40 @@ def start(cap_frame, infer, espcontrol=None, port=PORT):
     server = http.server.ThreadingHTTPServer(("0.0.0.0", port), _Handler)
     threading.Thread(target=server.serve_forever, daemon=True).start()
 
+    global _server
+    _server = server
     url = f"http://{_get_ip()}:{port}"
     log(f"Control panel at {url}   (local: http://localhost:{port})")
     if _espcontrol:
         _espcontrol.send_info(f"Panel {url}")
     return server
+
+
+def stop():
+    """Shut the web server down and release its socket. Idempotent; safe to call
+    from main.py's cleanup (it runs on a different thread than serve_forever)."""
+    global _server
+    if _server is None:
+        return
+    srv, _server = _server, None
+    log("Control panel stopping")
+    try:
+        srv.shutdown()        # break serve_forever (running on the daemon thread)
+        srv.server_close()    # release the listening socket
+    except Exception as e:
+        print(f"Error stopping control panel: {e}")
+
+
+def request_shutdown():
+    """Ask the whole app to exit gracefully -- used by the web Shutdown button.
+
+    Sends SIGINT to our own process so main.py's normal Ctrl+C path runs and does
+    its usual cleanup (stop the panel, release the camera, close the ESP link).
+    The physical Ctrl+C in the terminal still works exactly the same way."""
+    log("Shutdown requested from web panel")
+    if _espcontrol:
+        try:
+            _espcontrol.send_info("Shutting down")
+        except Exception:
+            pass
+    os.kill(os.getpid(), signal.SIGINT)   # -> KeyboardInterrupt in main -> clean exit
