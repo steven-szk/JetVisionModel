@@ -175,9 +175,9 @@ def capture_and_process():
 
         with _state_lock:
             _state["raw_jpg"] = _encode(frame)
-        log("Frame captured - running inference...")
+        log("Frame captured - running inference")
         if _espcontrol:
-            _espcontrol.send_info("Frame Captured - running inference...")
+            _espcontrol.send_info("Frame Captured - running inference")
 
         regions = _infer(frame)
         annotated = _draw(frame.copy(), regions)
