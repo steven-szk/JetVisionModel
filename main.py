@@ -58,9 +58,10 @@ def main():
     except (KeyboardInterrupt, EOFError):
         print("\nExiting")
     finally:
+        espcontrol.send_info("REBOOT") #special command to tell esp to reboot
         close_camera()
-        espcontrol.close()
         controlpanel.stop()
+        espcontrol.close()
         print("shutdown gracefully")
 
 
