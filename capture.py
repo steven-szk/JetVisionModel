@@ -16,9 +16,9 @@ if not AUTO:
     cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1)  # manual mode
     cap.set(cv2.CAP_PROP_EXPOSURE, EXPOSURE_US / 1e6)  # seconds
     cap.set(cv2.CAP_PROP_GAIN, GAIN)
-    cap.set(cv2.CAP_PROP_AUTO_WB, 0)
-    cap.set(cv2.CAP_PROP_WHITE_BALANCE_BLUE_U, COLOUR_GAINS[1])
-    cap.set(cv2.CAP_PROP_WHITE_BALANCE_RED_V, COLOUR_GAINS[0])
+    #cap.set(cv2.CAP_PROP_AUTO_WB, 0) 
+    #cap.set(cv2.CAP_PROP_WHITE_BALANCE_BLUE_U, COLOUR_GAINS[1])
+    #cap.set(cv2.CAP_PROP_WHITE_BALANCE_RED_V, COLOUR_GAINS[0])
 
 cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))  # set before resolution
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, WIDTH)
