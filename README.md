@@ -58,10 +58,10 @@ sudo systemctl start defectdetect       # start it right now
 journalctl -u defectdetect -f           # view cmd
 
 sudo systemctl stop defectdetect        # stop
-sudo systemctl disable jetvision        # stop running on boot
+sudo systemctl disable defectdetect     # stop running on boot
 
-sudo systemctl restart jetvision
-systemctl status jetvision
+sudo systemctl restart defectdetect 
+systemctl status defectdetect 
 
 # IP
 at WPA: 172.26.136.239
