@@ -20,6 +20,8 @@ if not AUTO:
     #cap.set(cv2.CAP_PROP_WHITE_BALANCE_BLUE_U, COLOUR_GAINS[1])
     #cap.set(cv2.CAP_PROP_WHITE_BALANCE_RED_V, COLOUR_GAINS[0])
 
+cap.set(cv2.CAP_PROP_AUTO_WB, 1)
+
 cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))  # set before resolution
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, WIDTH)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, HEIGHT)
