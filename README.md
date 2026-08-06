@@ -48,5 +48,20 @@ https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html#requ
 https://pypi.jetson-ai-lab.io/jp6
     -> Jetpack uses aarch64 so download any version compatible with cuda126, NOW it is 1.24.0
 
+## systemctl service:
+sudo cp ~/workspace/JetVisionModel/defectdetect.service /etc/systemd/system/defectdetect.service
+sudo systemctl daemon-reload
+sudo systemctl enable defectdetect      # start automatically on every boot
+sudo systemctl start defectdetect       # start it right now
+
+
+journalctl -u defectdetect -f           # view cmd
+
+sudo systemctl stop defectdetect        # stop
+sudo systemctl disable jetvision        # stop running on boot
+
+sudo systemctl restart jetvision
+systemctl status jetvision
+
 # IP
 at WPA: 172.26.136.239

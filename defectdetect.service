@@ -20,10 +20,10 @@ Restart=on-failure
 RestartSec=10
 
 # systemd already applies steven's groups (input, i2c, video, gpio, ...). If the
-# service can't reach the keyboard / camera / I2C, force them explicitly here:
+# service can't reach the keyboard / camera / I2C, force explicitly here:
 # SupplementaryGroups=input i2c video gpio dialout
 
-# Uncomment if onnxruntime can't find the CUDA libs your interactive shell exports:
+# Uncomment if onnxruntime can't find the CUDA libs:
 # Environment=LD_LIBRARY_PATH=/usr/local/cuda/lib64
 
 [Install]
