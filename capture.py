@@ -5,7 +5,7 @@ import cv2  # type: ignore
 WIDTH, HEIGHT = 1920, 1080       # capture resolution
 EXPOSURE_US = 20000000              # shutter speed in microsections, None = auto
 '''VERY IMPORTANT, in UK, 50Hz mains, so use multiples of 10ms'''
-GAIN = 5                      # exposure conpensation
+GAIN = 1                      # exposure conpensation
 COLOUR_GAINS = (1.2, 1.5)
 AUTO = False
 
