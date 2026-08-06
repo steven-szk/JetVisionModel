@@ -25,7 +25,7 @@ MEAN = 0.485 * 255.0
 STD = 0.229 * 255.0
 
 # per-feature settings (mirror each <feature>/settings.py)
-THRESH = {"edge": 0.9, "coating": 0.8, "delam": 0.9, "scratch": 0.3, "crack": 0.9}
+THRESH = {"edge": 0.9, "coating": 0.8, "delam": 0.9, "scratch": 0.3, "crack": 1}
 MIN_AREA = {"edge": 1000, "coating": 1200, "delam": 10, "scratch": 1000, "crack": 800}
 # per-feature draw color in BGR (mirrors each settings.py "color")
 COLORS = {
