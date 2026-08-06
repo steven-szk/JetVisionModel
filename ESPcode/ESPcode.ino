@@ -6,13 +6,14 @@
 #define SDA_PIN  8        // ESP32-C3 SuperMini default SDA = GPIO8
 #define SCL_PIN  9        // ESP32-C3 SuperMini default SCL = GPIO9
 
-// I2C RECIEVE DATA LENGTH
+// I2C RECIEVE DATA
 #define I2C_BUF_SIZE 128
 char i2c_rx_buf[I2C_BUF_SIZE];
 volatile bool i2c_data_ready = false;
 volatile bool ip_updated = false;
 volatile bool results_updated = false;
 volatile bool state_updated = false;
+volatile bool reboot_requested = false;
 volatile size_t rx_bytes_len = 0;
 uint32_t rx_count = 0;   // Cumulative received packet counter
 
@@ -113,6 +114,8 @@ void onReceive(int len) {
         strncpy(STATE, i2c_rx_buf + 5, sizeof(STATE) - 1); //remove chars STATE
         STATE[sizeof(STATE) - 1] = '\0';
         state_updated = true;
+      } else if (strncmp(i2c_rx_buf, "REBOOT", 6) == 0) {
+        reboot_requested = true; // Reboot Command received
       } else {
         i2c_data_ready = true; // this is for updating main log
       }
@@ -254,6 +257,13 @@ void setup() {
 }
 
 void loop() {
+  // Reboot Request Handling
+  if (reboot_requested) {
+    Serial.println("Reboot command received, restarting ESP32...");
+    delay(100);
+    ESP.restart();
+  }
+
   // Update IP field if fresh IP data arrived
   if (ip_updated) {
     ip_updated = false;
