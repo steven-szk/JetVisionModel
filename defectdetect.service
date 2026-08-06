@@ -1,6 +1,6 @@
 [Unit]
-Description=JetVisionModel electrode-defect inference + web control panel (port 1234)
-# Wait for the network so the panel can bind and report the LAN IP.
+Description=DefectDetect electrode-defect inference + web control panel (port 1234)
+# WiFi can take a while to associate + get an IP after boot; wait for it.
 After=network-online.target
 Wants=network-online.target
 
@@ -8,6 +8,15 @@ Wants=network-online.target
 Type=simple
 User=steven
 WorkingDirectory=/home/steven/workspace/JetVisionModel
+
+# WiFi usually isn't connected the instant the service starts, so getIP would report
+# "localhost" and the ESP/panel would show the wrong IP. Hold here until there is a
+# default route (WiFi up + DHCP done), checking every 2s for up to ~60s, then start
+# anyway. It starts as soon as the network is ready -- no fixed delay wasted.
+ExecStartPre=/bin/bash -c 'for i in $(seq 1 30); do ip route | grep -q "^default" && exit 0; sleep 2; done; exit 0'
+# Allow enough time for the wait above (only ExecStartPre counts toward this).
+TimeoutStartSec=120
+
 # Use the venv's python directly (no activation needed).
 ExecStart=/home/steven/workspace/JetVisionModel/.venv/bin/python /home/steven/workspace/JetVisionModel/main.py
 
@@ -20,10 +29,10 @@ Restart=on-failure
 RestartSec=10
 
 # systemd already applies steven's groups (input, i2c, video, gpio, ...). If the
-# service can't reach the keyboard / camera / I2C, force explicitly here:
+# service can't reach the keyboard / camera / I2C, force them explicitly here:
 # SupplementaryGroups=input i2c video gpio dialout
 
-# Uncomment if onnxruntime can't find the CUDA libs:
+# Uncomment if onnxruntime can't find the CUDA libs your interactive shell exports:
 # Environment=LD_LIBRARY_PATH=/usr/local/cuda/lib64
 
 [Install]
