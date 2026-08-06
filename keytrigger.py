@@ -20,7 +20,7 @@ Standalone test:
 """
 
 try:
-    from evdev import InputDevice, ecodes, list_devices
+    from evdev import InputDevice, ecodes, list_devices #type: ignore
     _HAVE_EVDEV = True
     # accept both the main Enter and the numpad Enter
     _ENTER_KEYS = (ecodes.KEY_ENTER, ecodes.KEY_KPENTER)
