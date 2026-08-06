@@ -29,6 +29,8 @@ cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
 if not cap.isOpened():
     print("Camera not found, check: v4l2-ctl --list-devices")
+    #return with Error code 1
+    exit(1)
 
 for _ in range(3):  # let auto-exposure settle
     cap.read()
